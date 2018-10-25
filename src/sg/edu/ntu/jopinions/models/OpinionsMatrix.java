@@ -18,7 +18,7 @@ public class OpinionsMatrix {
 	/**Number of P-C couples in the system. <b>This is <i>half</i> of the number of points</b>*/
 	int n;
 	
-	PointND[] points;
+	public PointND[] points;
 	float[][] data;
 	
 	/**Generates opinions matrix assuming that the opinions are unidimensional
@@ -137,5 +137,11 @@ public class OpinionsMatrix {
 
 		}
 		return totalDiff;
+	}
+	
+	public void normalize() {
+		for (PointND pointND : points) {
+			pointND.normalize();
+		}
 	}
 }

@@ -60,25 +60,6 @@ public abstract class EffectMatrix {
 
 	public abstract void normalize();
 	
-	protected float getQuadrantSum(float[][] quadrant) {
-		int n = EffectMatrix.n;
-		float sum = 0;
-		for (int i = 0; i < n; i++) {
-			for (int j = 0; j < n; j++) {
-				sum += quadrant[i][j];
-			}
-		}
-		return sum;
-	}
-	protected void scaleQuadrant(float[][] quadrant, float scale) {
-		int n = EffectMatrix.n;
-		for (int i = 0; i < n; i++) {
-			for (int j = 0; j < n; j++) {
-				quadrant[i][j] *= scale;
-			}
-		}
-	}
-	
 	protected float getEffectWithinQuadrant(float[][] quad, int y, int x) {
 		return quad[y][x];
 	}

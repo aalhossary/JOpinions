@@ -12,7 +12,7 @@ import sg.edu.ntu.jopinions.control.Simulation;
  * @author Amr
  *
  */
-public class IndependentNetworkedCastorAndPolluxEffectMatrix extends IndependentCastorAndPolluxEffectMatrix{
+public class IndependentNetworkedCastorAndPolluxEffectMatrix extends AbstractIndependentCastorAndPolluxEffectMatrix{
 
 	/**
 	 * @param n
@@ -47,10 +47,10 @@ public class IndependentNetworkedCastorAndPolluxEffectMatrix extends Independent
 			}
 		}
 		//calculate pp
-		for (int i = n; i < 2*n; i++) {
-			for (int j = n; j < 2*n; j++) {
-				PointND pi= x.points[i];
-				PointND pj= x.points[j];
+		for (int i = 0; i < n; i++) {
+			for (int j = 0; j < n; j++) {
+				PointND pi= x.points[i+n];
+				PointND pj= x.points[j+n];
 				//Nominator is 1 if there is edge
 				nominator = gPP.containsEdge(pi, pj) ? 1 : 0;
 				if(nominator == 0) {

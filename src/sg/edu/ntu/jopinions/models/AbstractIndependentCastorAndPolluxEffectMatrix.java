@@ -43,15 +43,23 @@ public abstract class AbstractIndependentCastorAndPolluxEffectMatrix extends Eff
 	 */
 	@Override
 	public void normalize() {
-		float sum = getQuadrantSum(quadrantCC);
-		//NO PC quadrant in this implementation
-		float scale = 1.0f / sum;
-		scaleQuadrant(quadrantCC, scale);
+		int n = EffectMatrix.n;
+		float sum, scale;
+		float[] line;
+		for (int i = 0; i < n; i++) {
+			line = quadrantCC[i];
+			sum = Utils.getSum(line);
+			//NO PC quadrant in this implementation
+			scale = 1.0f / sum;
+			Utils.scaleLine(line, scale);
+			
 
-		sum = getQuadrantSum(quadrantPP);
-		//NO CP quadrant in this implementation
-		scale = 1.0f / sum;
-		scaleQuadrant(quadrantPP, scale);
+			line = quadrantPP[i];
+			sum = Utils.getSum(line);
+			//NO PC quadrant in this implementation
+			scale = 1.0f / sum;
+			Utils.scaleLine(line, scale);
+		}
 	}
 
 	@Override

@@ -17,9 +17,9 @@ import sg.edu.ntu.jopinions.models.PointND;
  */
 public class Simulation implements Runnable {
 	
-	public static final float EPSILON= 1e-15f; //Float.MIN_VALUE;
+	public static final float EPSILON= 1E-1f; //Float.MIN_VALUE;
 
-	private static final long MAX_STEPS = 10000000;
+	private static final long MAX_STEPS = 10;//10000000;
 	
 	Thread runner= null;
 	long step = -1;
@@ -52,6 +52,7 @@ public class Simulation implements Runnable {
 	public void run() {
 		//FIXME change this later
 		OpinionsMatrix x = this.getX();
+		x.normalize();
 		//TODO fill initial x values
 		EffectMatrix D = this.D;
 		Graph<PointND, DefaultEdge>[] graphs = this.graphs;
@@ -90,6 +91,7 @@ public class Simulation implements Runnable {
 
 			//x = tempX;
 			x.match(tempX);
+			x.normalize();
 
 			//TODO save tempX if you want
 			if (verbose ) {
@@ -100,6 +102,7 @@ public class Simulation implements Runnable {
 			
 			D.updateUsing(x, graphs);
 			D.normalize();
+			
 
 			//TODO Show updates on GUI
 			//TODO output opinionsMatrix and EffectMatrix
