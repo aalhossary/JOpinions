@@ -42,14 +42,26 @@ public class JOpinionsCLI {
 		simulation.setD(new IndependentNetworkedCastorAndPolluxEffectMatrix(pairs));
 		
 		OpinionsMatrix x = new OpinionsMatrix(pairs, dimensions);
-		float[][] data = new float[2*pairs][dimensions]; 
-		for (int i = 0; i < data.length; i++) {
-			float[] tempX = new float[dimensions];
-			for (int j = 0; j < dimensions; j++) {
-				tempX[j]= i * 11.1111f + j;
-			}
-			data[i]= tempX;
+		float[][] data = new float[2*pairs][dimensions];
+
+		data[0] = 			new float[] {1,0,0};
+		data[2*pairs-1] = 	new float[] {0,1,0};
+		float delta = 1.0f / ((data.length/2)-1-1);
+		for (int i = 1; i < data.length/2; i++) {
+			float alpha = (i-1) * delta;
+			//castors
+			data[i] = new float[] { ((0.5f * alpha) + (0.5f * (1-alpha))), (0+(0.5f * (1-alpha))), ((0.5f *alpha)+0)};
+			//pulloxes
+			data[data.length-i-1] = new float[] { ((0.5f *alpha)+0), ((0.5f * alpha) + (0.5f * (1-alpha))), (0+(0.5f * (1-alpha)))};
 		}
+		
+//		for (int i = 0; i < data.length; i++) {
+//			float[] tempX = new float[dimensions];
+//			for (int j = 0; j < dimensions; j++) {
+//				tempX[j]= i * 11.1111f + j;
+//			}
+//			data[i]= tempX;
+//		}
 		x.set(data);
 		simulation.setX(x);
 		
@@ -67,8 +79,8 @@ public class JOpinionsCLI {
 			gCC.addEdge(cPoints.get(i), cPoints.get(i));
 			gPP.addEdge(pPoints.get(i), pPoints.get(i));
 		}
-		Graphs.addOutgoingEdges(gCC,cPoints.get(0), cPoints);
-		Graphs.addOutgoingEdges(gPP,pPoints.get(pairs-1), pPoints);//pairs-1
+		Graphs.addIncomingEdges(gCC,cPoints.get(0), cPoints);
+		Graphs.addIncomingEdges(gPP,pPoints.get(pairs-1), pPoints);//pairs-1
 		
 		
 		simulation.start();
