@@ -1,4 +1,4 @@
-package sg.edu.ntu.opinions.models;
+package sg.edu.ntu.jopinions.models;
 
 import java.io.PrintStream;
 

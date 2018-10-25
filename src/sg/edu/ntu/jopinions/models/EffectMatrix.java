@@ -1,7 +1,7 @@
 /**
  * 
  */
-package sg.edu.ntu.opinions.models;
+package sg.edu.ntu.jopinions.models;
 
 import org.jgrapht.Graph;
 import org.jgrapht.graph.DefaultEdge;

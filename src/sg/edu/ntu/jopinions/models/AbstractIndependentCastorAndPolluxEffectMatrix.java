@@ -1,7 +1,7 @@
 /**
  * 
  */
-package sg.edu.ntu.opinions.models;
+package sg.edu.ntu.jopinions.models;
 
 /**This is the base for both {@link IndependentCastorAndPolluxEffectMatrix} and {@link IndependentNetworkedCastorAndPolluxEffectMatrix}
  * @author Amr

@@ -5,4 +5,4 @@
  * @author Amr
  *
  */
-package sg.edu.ntu.opinions.control.gui;
+package sg.edu.ntu.jopinions.control.gui;

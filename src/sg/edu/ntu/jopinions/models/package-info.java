@@ -5,4 +5,4 @@
  * @author Amr
  *
  */
-package sg.edu.ntu.opinions.models;
+package sg.edu.ntu.jopinions.models;

@@ -1,12 +1,12 @@
 /**
  * 
  */
-package sg.edu.ntu.opinions.models;
+package sg.edu.ntu.jopinions.models;
 
 import org.jgrapht.Graph;
 import org.jgrapht.graph.DefaultEdge;
 
-import sg.edu.ntu.opinions.control.Simulation;
+import sg.edu.ntu.jopinions.control.Simulation;
 
 /**
  * @author Amr

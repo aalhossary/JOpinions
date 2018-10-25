@@ -6,4 +6,4 @@
  * @author Amr
  *
  */
-package sg.edu.ntu.opinions;
+package sg.edu.ntu.jopinions;

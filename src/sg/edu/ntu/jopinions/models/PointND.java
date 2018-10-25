@@ -1,4 +1,4 @@
-package sg.edu.ntu.opinions.models;
+package sg.edu.ntu.jopinions.models;
 
 /**A point in N-Dimensions.
  * The number of dimensions is an arbitrary number.

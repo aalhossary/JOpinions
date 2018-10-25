@@ -1,13 +1,13 @@
-package sg.edu.ntu.opinions.control.cli;
+package sg.edu.ntu.jopinions.control.cli;
 
 import org.jgrapht.Graph;
 import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
 
-import sg.edu.ntu.opinions.control.Simulation;
-import sg.edu.ntu.opinions.models.IndependentCastorAndPolluxEffectMatrix;
-import sg.edu.ntu.opinions.models.OpinionsMatrix;
-import sg.edu.ntu.opinions.models.PointND;
+import sg.edu.ntu.jopinions.control.Simulation;
+import sg.edu.ntu.jopinions.models.IndependentCastorAndPolluxEffectMatrix;
+import sg.edu.ntu.jopinions.models.OpinionsMatrix;
+import sg.edu.ntu.jopinions.models.PointND;
 
 public class JOpinionsCLI {
 

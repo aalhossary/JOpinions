@@ -1,14 +1,14 @@
 /**
  * 
  */
-package sg.edu.ntu.opinions.control;
+package sg.edu.ntu.jopinions.control;
 
 import org.jgrapht.Graph;
 import org.jgrapht.graph.DefaultEdge;
 
-import sg.edu.ntu.opinions.models.EffectMatrix;
-import sg.edu.ntu.opinions.models.OpinionsMatrix;
-import sg.edu.ntu.opinions.models.PointND;
+import sg.edu.ntu.jopinions.models.EffectMatrix;
+import sg.edu.ntu.jopinions.models.OpinionsMatrix;
+import sg.edu.ntu.jopinions.models.PointND;
 
 /**I chose to implement {@link Runnable} instead of extending {@link Thread} to have better control on
  * the running simulation, as well as to avoid exposing harmful thread methods.

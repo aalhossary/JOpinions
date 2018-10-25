@@ -6,4 +6,4 @@
  * @author Amr
  *
  */
-package sg.edu.ntu.opinions.control.cli;
+package sg.edu.ntu.jopinions.control.cli;
