@@ -17,9 +17,25 @@ import sg.edu.ntu.jopinions.models.PointND;
  */
 public class Simulation implements Runnable {
 	
+	public static final String MODEL_INDEPENDENT_CASTOR_AND_POLLUX				= "IndependentCastorAndPollux";
+	public static final String MODEL_INDEPENDENT_NETWORKED_CASTOR_AND_POLLUX	= "IndependentNetworkedCastorAndPollux";
+	public static final String MODEL_COUPLED_NETWORK_CASTOR_AND_POLLUX_PHI		= "CoupledNetworkCastorAndPollux-Phi";
+	public static final String MODEL_COUPLED_NETWORK_CASTOR_AND_POLLUX_Beta		= "CoupledNetworkCastorAndPollux-Beta";
+	public static final String MODEL_FULLY_COUPLED_NETWORKED_CASTOR_AND_POLLUX	= "FullyCoupledNetworkedCastorAndPollux";
+
+	public static final String TOPOLOGY_WATTS_STROGATZ_GRAPH 		= "WattsStrogatzGraph";
+	public static final String TOPOLOGY_BARABASI_ALBERT_GRAPH 		= "BarabasiAlbertGraph";
+	public static final String TOPOLOGY_ERDOS_RENYI_GNP_RANDOM_GRAPH= "GnpRandomGraph";
+	public static final String TOPOLOGY_KLEINBERG_SMALL_WORLD_GRAPH	= "KleinbergSmallWorldGraph";
+
+	public static final int DEFAULT_NUM_DIMENSIONS = 3;
+
 	public static final float EPSILON= 1E-1f; //Float.MIN_VALUE;
 
-	private static final long MAX_STEPS = 10;//10000000;
+	private static final long MAX_STEPS = 10_000_000;
+	private String model = MODEL_INDEPENDENT_NETWORKED_CASTOR_AND_POLLUX;
+	private String topology = TOPOLOGY_WATTS_STROGATZ_GRAPH;
+	private int dimensions = DEFAULT_NUM_DIMENSIONS;
 	
 	Thread runner= null;
 	long step = -1;
@@ -139,6 +155,13 @@ public class Simulation implements Runnable {
 		}
 	}
 
+	/**
+	 * @param graphs ordered as 
+	 * <pre>
+	 * {graphCC, graphCP,
+	 *  graphPC, graphPP}
+	 *  </pre>
+	 */
 	public void setGraphs(Graph<PointND, DefaultEdge>[] graphs) {
 		this.graphs = graphs;
 	}
@@ -174,6 +197,26 @@ public class Simulation implements Runnable {
 
 	public void setX(OpinionsMatrix x) {
 		this.x = x;
+	}
+
+
+	public String getTopology() {
+		return topology;
+	}
+
+
+	public void setTopology(String topology) {
+		this.topology = topology;
+	}
+
+
+	public String getModel() {
+		return model;
+	}
+
+
+	public void setModel(String model) {
+		this.model = model;
 	}
 
 	

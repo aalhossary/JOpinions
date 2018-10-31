@@ -1,5 +1,8 @@
 package sg.edu.ntu.jopinions.models;
 
+import java.util.Arrays;
+import java.util.function.Supplier;
+
 /**A point in N-Dimensions.
  * The number of dimensions is an arbitrary number.
  * @author Amr
@@ -8,12 +11,15 @@ package sg.edu.ntu.jopinions.models;
 public class PointND {
 	static int d = 0;
 	
+	String name;
 	float[] x;
+	/**for testing purposes only. should be removed later*/
+	private int id;
 	
 	
-	public PointND(float[] x) {
-		if(d != 0 && x.length != d)
-			throw new IllegalArgumentException("non mtching dimensions");
+	public PointND(String name, float[] x) {
+		checkDimensions(x);
+		this.name = name;
 		this.x = x;
 	}
 	
@@ -32,15 +38,18 @@ public class PointND {
 	}
 	
 	public void setX(float[] x) {
-		if(d != 0 && x.length != d)
-			throw new IllegalArgumentException("non mtching dimensions");
+		checkDimensions(x);
 		this.x = x;
 	}
-	
+
 	public void matchValues(float[] x) {
+		checkDimensions(x);
+		System.arraycopy(x, 0, this.x, 0, d);
+	}
+	
+	private void checkDimensions(float[] x) {
 		if(d != 0 && x.length != d)
 			throw new IllegalArgumentException("non mtching dimensions");
-		System.arraycopy(x, 0, this.x, 0, d);
 	}
 	
 	public float getDist(PointND other) {
@@ -63,6 +72,42 @@ public class PointND {
 			//NO PC quadrant in this implementation
 			float scale = 1.0f / sum;
 			Utils.scaleLine(this.x, scale);
+		}
+	}
+	public static void setNumDimensions(int d) {
+		PointND.d = d;
+	}
+	
+	public int getId() {
+		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
+	}
+	
+	@Override
+	public String toString() {
+		return this.name+this.id+Arrays.toString(this.x);
+	}
+
+	public static class PointNDSupplier implements Supplier<PointND>{
+		public static final String PULLOX = "P";
+		public static final String CASTOR = "C";
+//		private int numDim;
+		private int next=0;
+		String name;
+		public PointNDSupplier(int numDim, String name) {
+			PointND.d = numDim;
+//			this.numDim = numDim;
+			this.name = name;
+		}
+		@Override
+		public PointND get() {
+//			return new PointND(name, new float[numDim]);
+			PointND pointND = new PointND(name, new float[PointND.d]);
+			pointND.id = next++;
+			return pointND;
 		}
 	}
 }

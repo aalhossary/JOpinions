@@ -1,6 +1,9 @@
 package sg.edu.ntu.jopinions.models;
 
 import java.io.PrintStream;
+import java.util.Random;
+
+import sg.edu.ntu.jopinions.models.PointND.PointNDSupplier;
 
 /**This matrix is referenced in the text as x or x[t].<br>
  * The data is stored in one colum in the form of (c<sub>1</sub>c<sub>2</sub> · · · c<sub>n</sub>p<sub>1</sub>p<sub>2</sub> · · · p<sub>n</sub>).
@@ -25,30 +28,35 @@ public class OpinionsMatrix {
 	 * @param n
 	 */
 	public OpinionsMatrix(int n) {
-		this(n,1);
+		this(n,1, true);
 	}
 	/**Initialize the matrix with number of vertices x number of dimensions.<br> 
 	 * Note that the actual number of rows will be 2n not only n.
 	 * @param n number of couples (half number of vertices)
 	 * @param d number of dimensions.
+	 * @param initialize TODO
 	 */
-	public OpinionsMatrix(int n, int d) {
+	public OpinionsMatrix(int n, int d, boolean initialize) {
 		this.n = n;
 		this.d = d;
 		
-		//now create the matrix itself
-		PointND.d=d;
-		points= new PointND[2*n];
-		data = new float[points.length][];
-		//share the same data variables between the 2D array and individual points (vertices)
-		for (int i = 0; i < points.length; i++) {
-			float[] data = new float[d];
-			PointND pointND= new PointND(data);
-			points[i] = pointND;
-			this.data[i] = data;
+		if (initialize) {
+			//now create the matrix itself
+			PointND.d = d;
+			PointND[] points = new PointND[2 * n];
+			//share the same data variables between the 2D array and individual points (vertices)
+			for (int i = 0; i < points.length; i++) {
+				float[] data = new float[d];
+				String name = i < n ? PointNDSupplier.CASTOR : PointNDSupplier.PULLOX;
+				points[i] = new PointND(name, data);
+			}
+			set(points);
 		}
 	}
 	
+	/**@deprecated use {@link #set(PointND[])}
+	 * @param data
+	 */
 	public void set(float[][] data) {
 		this.data = data;
 		for (int i = 0; i < points.length; i++) {
@@ -79,6 +87,7 @@ public class OpinionsMatrix {
 		}
 	}
 	public void printTransposed(PrintStream out) {
+		int d = this.d;
 		for (int i = 0; i < d; i++) {
 			for (int j = 0; j < points.length; j++) {
 				out.format(OpinionsMatrix.outputFotmat, data[j][i]);
@@ -89,7 +98,9 @@ public class OpinionsMatrix {
 	
 	
 	public static void main(String[] args) {
-		OpinionsMatrix mat1 = new OpinionsMatrix(7, 3);
+		//just a dummy code to test matrix maltiplication
+		
+		OpinionsMatrix mat1 = new OpinionsMatrix(7, 3, true);
 		for (int i = 0; i < mat1.points.length; i++) {
 			PointND p = mat1.points[i];
 			for (int j = 0; j < p.x.length; j++) {
@@ -102,7 +113,7 @@ public class OpinionsMatrix {
 		System.out.println();
 		
 		
-		OpinionsMatrix mat2 = new OpinionsMatrix(7, 3);
+		OpinionsMatrix mat2 = new OpinionsMatrix(7, 3, true);
 		for (int i = 0; i < mat2.points.length; i++) {
 			PointND p = mat2.points[i];
 			for (int j = 0; j < p.x.length; j++) {
@@ -142,6 +153,23 @@ public class OpinionsMatrix {
 	public void normalize() {
 		for (PointND pointND : points) {
 			pointND.normalize();
+		}
+	}
+	public void set(PointND[] points) {
+		//TODO validate d and n
+		this.points = points;
+		this.data= new float[points.length][];
+		for (int i = 0; i < data.length; i++) {
+			data[i] = points[i].x;
+		}
+	}
+	public void randomize(long seed) {
+		Random random = new Random(seed);
+		for (PointND pointND : points) {
+			float[] x = pointND.x;
+			for (int i = 0; i < x.length; i++) {
+				x[i] = random.nextFloat();//already from 0.0 to 1.0
+			}
 		}
 	}
 }
