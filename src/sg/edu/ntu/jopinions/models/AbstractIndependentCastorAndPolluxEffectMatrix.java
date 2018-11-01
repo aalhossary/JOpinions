@@ -35,7 +35,6 @@ public abstract class AbstractIndependentCastorAndPolluxEffectMatrix extends Eff
 		default:
 			throw new IllegalArgumentException("unexpeccted numbers ("+y+", "+x+")");
 		}
-		// TODO validate it
 	}
 
 	/* (non-Javadoc)
@@ -72,6 +71,7 @@ public abstract class AbstractIndependentCastorAndPolluxEffectMatrix extends Eff
 	@Override
 	public float[][] multiply(OpinionsMatrix x) {
 		float[][] ret = new float[x.points.length][x.d];
+		int n = EffectMatrix.n;
 		
 		// multiply into ret
 		for (int row = 0; row < x.data.length; row++) {
