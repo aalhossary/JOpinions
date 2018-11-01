@@ -3,9 +3,12 @@
  */
 package sg.edu.ntu.jopinions.control;
 
+import javax.swing.JFrame;
+
 import org.jgrapht.Graph;
 import org.jgrapht.graph.DefaultEdge;
 
+import sg.edu.ntu.jopinions.control.gui.GraphPanel;
 import sg.edu.ntu.jopinions.models.EffectMatrix;
 import sg.edu.ntu.jopinions.models.OpinionsMatrix;
 import sg.edu.ntu.jopinions.models.PointND;
@@ -88,6 +91,15 @@ public class Simulation implements Runnable {
 			System.out.println();
 		}
 		
+		//TODO fix the temp JFrame
+		JFrame frame = new JFrame("Jopinions Simulation");
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		GraphPanel<PointND, DefaultEdge> panel = new GraphPanel<>();
+		panel.setGraphs(graphs);
+		frame.setContentPane(panel);
+		frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+		frame.setVisible(true);
+		
 		while (++step <= MAX_STEPS) {
 			
 			//now I have transformation (effects) matrix and x (opinions) matrix
@@ -96,14 +108,12 @@ public class Simulation implements Runnable {
 			//update opinions
 			//opinionsMatrix = effectMatrix x opinionsMatrix
 			float[][] tempX = D.multiply(x);
-			//TODO normalize opinionsMatrix ???
-			//tempX.normalize();
 			
-			//TODO calculate the total system update (total absolute distance)
-			// is it the update of X only?
+			//calculate the total system update (total absolute distance)
+			//TODO is it the update of X only, or X and D?
 			float totalAbsDist = x.calculateTotalDifference(tempX);
 			converged = totalAbsDist < (oneOverNSquare / step);
-			System.out.format("Total Diff = %8.5Ed, Converged = %b\n", totalAbsDist, converged);
+			System.out.format("Step = %d, Total Diff = %8.5Ed, Converged = %b\n", step, totalAbsDist, converged);
 
 			//x = tempX;
 			x.match(tempX);
@@ -120,7 +130,16 @@ public class Simulation implements Runnable {
 			D.normalize();
 			
 
-			//TODO Show updates on GUI
+			//Show updates on GUI
+			panel.repaint();
+
+			//delay
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			
 			//TODO output opinionsMatrix and EffectMatrix
 			if (converged) {
 				break;
