@@ -78,7 +78,7 @@ public class JOpinionsCLI {
 
 		OpinionsMatrix x = createOpinionsMatrix(numCouples, numDimensions, graphCC, graphPP);
 		//TODO remove the local variable seed later
-		long seed = Long.valueOf(getParameter(args, "-seed", "0", "123456789"));
+		long seed = Long.valueOf(getParameter(args, "-seed", "0", ""+System.currentTimeMillis()));// "123456789"
 		x.randomize(seed);
 		simulation.setX(x);
 		simulation.start();
@@ -86,7 +86,7 @@ public class JOpinionsCLI {
 	private static GraphGenerator<PointND, DefaultEdge, PointND> createModelGenerator(String[] args,
 			Simulation simulation, int numCouples) {
 		GraphGenerator<PointND, DefaultEdge, PointND> generator;
-		long seed = Long.valueOf(getParameter(args, "-seed", "0", "123456789"));
+		long seed = Long.valueOf(getParameter(args, "-seed", "0", ""+System.currentTimeMillis())); // "123456789"
 		String topology = getParameter(args, "-topology", null, simulation.getTopology());
 		switch (topology) {
 		case Simulation.TOPOLOGY_BARABASI_ALBERT_GRAPH:
