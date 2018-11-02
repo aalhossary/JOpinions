@@ -40,6 +40,8 @@ public class Simulation implements Runnable {
 	private String topology = TOPOLOGY_WATTS_STROGATZ_GRAPH;
 	private int dimensions = DEFAULT_NUM_DIMENSIONS;
 	
+	private static final long stepTimeMillis = 20_000;
+	
 	Thread runner= null;
 	long step = -1;
 
@@ -92,7 +94,7 @@ public class Simulation implements Runnable {
 		}
 		
 		//TODO fix the temp JFrame
-		JFrame frame = new JFrame("Jopinions Simulation");
+		JFrame frame = new JFrame("JOpinions Simulation ["+topology+", "+model+"]");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		GraphPanel<PointND, DefaultEdge> panel = new GraphPanel<>();
 		panel.setGraphs(graphs);
@@ -135,7 +137,8 @@ public class Simulation implements Runnable {
 
 			//delay
 			try {
-				Thread.sleep(1000);
+				//TODO adjust ti later
+				Thread.sleep(stepTimeMillis);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
