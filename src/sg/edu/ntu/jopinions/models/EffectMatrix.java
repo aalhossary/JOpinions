@@ -23,13 +23,14 @@ public abstract class EffectMatrix {
 	/**Number of P-C couples in the system. */
 	protected static int n;
 	
-//	public static final float EPSILON = 1.0E-20f;//Float.MIN_VALUE;
-	
+	//1st dimension is column number. 2nd dimension is the column itself (it runs along the row number).
 	protected float[][] quadrantCC = null;
-	protected float[][] quadrantCP = null;
 	protected float[][] quadrantPC = null;
+	protected float[][] quadrantCP = null;
 	protected float[][] quadrantPP = null;
 	
+	/**first dimension is quadrant (columns wise). 
+	 * second dimension is column number. third dimension is row number.*/
 	protected float[][][] data;
 
 	/**
@@ -39,11 +40,11 @@ public abstract class EffectMatrix {
 		EffectMatrix.n = n;
 		//initialize matrix quadrants
 		initQuadrants(n);
-		data = new float[][][] {quadrantCC,quadrantCP,
-								quadrantPC,quadrantPP};
+		data = new float[][][] {quadrantCC, quadrantPC, quadrantCP, quadrantPP};
 	}
 	protected abstract void initQuadrants(int n);
 	/**This function does not calculate nor update anything. It is just a getter.
+	 * TODO validate
 	 * @param y the affecter point
 	 * @param x the affected point
 	 * @return the effect that point y exerts on point x.
@@ -58,6 +59,7 @@ public abstract class EffectMatrix {
 	public abstract void updateUsing(OpinionsMatrix x, Graph<PointND, DefaultEdge>[] graphs);
 
 
+	/**normalizes the matrix <i><b>column</b> wise</i> (including lines from one or two quadrants)*/
 	public abstract void normalize();
 	
 	protected float getEffectWithinQuadrant(float[][] quad, int y, int x) {
@@ -65,15 +67,23 @@ public abstract class EffectMatrix {
 	}
 	/**The order may be changed later
 	 * <pre>
-	 * (  0  |  1
+	 * (  0  |  2
 	 * ------+------
-	 *    2  |  3
+	 *    1  |  3
 	 * </pre>
 	 */
 	public static int getQuadrant(int row, int col) {
-		return ((row/n)*2) + (col / n);
+		return ((col/n)*2) + (row / n);
 	}
 	
-	public abstract float[][] multiply(OpinionsMatrix x);
-	
+	/**This function returns the corresponding column from the matrix.
+	 * <p>
+	 * It may return one or two arrays in the first dimension. Two arrays 
+	 * are returned in case of coupled pair. But in case of Independent couple, 
+	 * the output is one array and one null pointer.
+	 * @param col the column number to return.
+	 * @return A two dimensional array of <code>float</code>. The first is
+	 * the quadrant and the second is the row number
+	 */
+	abstract float[][] getLine(int col);
 }

@@ -28,8 +28,8 @@ public class IndependentNetworkedCastorAndPolluxEffectMatrix extends AbstractInd
 	@Override
 	public void updateUsing(OpinionsMatrix x, Graph<PointND, DefaultEdge>[] graphs) {
 		int n = EffectMatrix.n;
-		Graph<PointND, DefaultEdge> gCC = graphs[0];
-		Graph<PointND, DefaultEdge> gPP = graphs[3];
+		Graph<PointND, DefaultEdge> graphCC = graphs[0];
+		Graph<PointND, DefaultEdge> graphPP = graphs[3];
 		double nominator;
 		//calculate cc
 		for (int i = 0; i < n; i++) {
@@ -37,12 +37,12 @@ public class IndependentNetworkedCastorAndPolluxEffectMatrix extends AbstractInd
 				PointND ci= x.points[i];
 				PointND cj= x.points[j];
 				//Nominator is 1 if there is edge
-				nominator = gCC.containsEdge(ci, cj) ? 1 : 0;
+				nominator = graphCC.containsEdge(ci, cj) ? 1 : 0;
 				if(nominator == 0) {
-					quadrantCC[i][j] = 0;
+					quadrantCC[j][i] = 0;
 				}else {
 					double denom= Simulation.EPSILON + ci.getDist(cj);
-					quadrantCC[i][j] = (float) (nominator/denom); //TODO revise
+					quadrantCC[j][i] = (float) (nominator/denom); //TODO revise
 				}
 			}
 		}
@@ -52,12 +52,12 @@ public class IndependentNetworkedCastorAndPolluxEffectMatrix extends AbstractInd
 				PointND pi= x.points[i+n];
 				PointND pj= x.points[j+n];
 				//Nominator is 1 if there is edge
-				nominator = gPP.containsEdge(pi, pj) ? 1 : 0;
+				nominator = graphPP.containsEdge(pi, pj) ? 1 : 0;
 				if(nominator == 0) {
-					quadrantPP[i][j] = 0;
+					quadrantPP[j][i] = 0;
 				}else {
 					double denom= Simulation.EPSILON + pi.getDist(pj);
-					quadrantPP[i][j] = (float) (nominator/denom); //TODO revise
+					quadrantPP[j][i] = (float) (nominator/denom); //TODO revise
 				}
 			}
 		}

@@ -100,8 +100,8 @@ public class JOpinionsCLI {
 		case Simulation.TOPOLOGY_ERDOS_RENYI_GNP_RANDOM_GRAPH:
 			int numEdges	= Integer.valueOf(getParameter(args, "-edges", "0", "-1"));
 			if(numEdges == -1) {
-//				numEdges = numCouples * 3;
-				numEdges = (numCouples*numCouples) * (numCouples-1)*(numCouples-1)/80;
+				numEdges = numCouples * 3;
+//				numEdges = (numCouples*numCouples) * (numCouples-1)*(numCouples-1)/80;
 			}
 			generator = new GnmRandomGraphGenerator<>(numCouples, numEdges, seed);
 			break;
@@ -130,7 +130,7 @@ public class JOpinionsCLI {
 	}
 	private static OpinionsMatrix createOpinionsMatrix(int numCouples, int numDimensions,
 			Graph<PointND, DefaultEdge> graphCC, Graph<PointND, DefaultEdge> graphPP) {
-		OpinionsMatrix x = new OpinionsMatrix(numCouples, numDimensions, false);
+		OpinionsMatrix x = new OpinionsMatrix(numDimensions, numCouples, false);
 		Set<PointND> vertexSet;
 		PointND[] temp, points;
 		vertexSet = graphCC.vertexSet();
@@ -205,7 +205,7 @@ public class JOpinionsCLI {
 //		simulation.setD(new IndependentCastorAndPolluxEffectMatrix(pairs));
 		simulation.setD(new IndependentNetworkedCastorAndPolluxEffectMatrix(numCouples));
 		
-		OpinionsMatrix x = new OpinionsMatrix(numCouples, dimensions, true);
+		OpinionsMatrix x = new OpinionsMatrix(dimensions, numCouples, true);
 		float[][] data = new float[2*numCouples][dimensions];
 
 		data[0] = 			new float[] {1,0,0};
@@ -219,14 +219,7 @@ public class JOpinionsCLI {
 			data[data.length-i-1] = new float[] { ((0.5f *alpha)+0), ((0.5f * alpha) + (0.5f * (1-alpha))), (0+(0.5f * (1-alpha)))};
 		}
 		
-//		for (int i = 0; i < data.length; i++) {
-//			float[] tempX = new float[dimensions];
-//			for (int j = 0; j < dimensions; j++) {
-//				tempX[j]= i * 11.1111f + j;
-//			}
-//			data[i]= tempX;
-//		}
-		x.set(data);
+		x.match(data);
 		simulation.setX(x);
 		
 		List<PointND> cPoints = new ArrayList<>(numCouples);
@@ -243,8 +236,8 @@ public class JOpinionsCLI {
 			gCC.addEdge(cPoints.get(i), cPoints.get(i));
 			gPP.addEdge(pPoints.get(i), pPoints.get(i));
 		}
-		Graphs.addIncomingEdges(gCC,cPoints.get(0), cPoints);
-		Graphs.addIncomingEdges(gPP,pPoints.get(numCouples-1), pPoints);//pairs-1
+		Graphs.addOutgoingEdges(gCC,cPoints.get(0), cPoints);
+		Graphs.addOutgoingEdges(gPP,pPoints.get(numCouples-1), pPoints);//pairs-1
 		
 		
 		simulation.start();

@@ -31,21 +31,21 @@ public class IndependentCastorAndPolluxEffectMatrix extends AbstractIndependentC
 		double nominator=1;
 		//calculate cc
 		for (int i = 0; i < n; i++) {
-			for (int j = 0; j <= i; j++) { //TODO < or <= ?
+			for (int j = 0; j <= i; j++) {
 				PointND ci= x.points[i];
 				PointND cj= x.points[j];
-				float denom= Simulation.EPSILON + ci.getDist(cj);
-				quadrantCC[i][j] = quadrantCC[j][i] = (float) (nominator/denom); //TODO revise
+				float denom = Simulation.EPSILON + ci.getDist(cj);
+				quadrantCC[i][j] = quadrantCC[j][i] = (float) (nominator/denom);
 			}
 		}
 		//calculate pp
 		for (int i = n; i < 2*n; i++) {
-			for (int j = n; j <= i; j++) { //TODO < or <= ?
+			for (int j = n; j <= i; j++) {
 				PointND pi= x.points[i];
 				PointND pj= x.points[j];
-				double denom= Simulation.EPSILON + pi.getDist(pj);
+				double denom = Simulation.EPSILON + pi.getDist(pj);
 				int ii=i-n, jj=j-n;;
-				quadrantPP[ii][jj] = quadrantPP[jj][ii] = (float) (nominator/denom); //TODO revise
+				quadrantPP[ii][jj] = quadrantPP[jj][ii] = (float) (nominator/denom);
 			}
 		}
 	}
@@ -71,6 +71,4 @@ public class IndependentCastorAndPolluxEffectMatrix extends AbstractIndependentC
 ////  20.00000  40.00000 800.000001800.00000
 ////  23.00000  47.00000 830.000001870.00000
 //	}
-	
-	
 }

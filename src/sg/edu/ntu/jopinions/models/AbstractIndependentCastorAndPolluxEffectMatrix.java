@@ -22,9 +22,9 @@ public abstract class AbstractIndependentCastorAndPolluxEffectMatrix extends Eff
 	@Override
 	public float getEffect(int y, int x) {
 		int quadrant = getQuadrant(y, x);
+//		return data[quadrant][y][x];
 		switch (quadrant) {
 		case 0:
-//			return data[quadrant][y][x];
 			return getEffectWithinQuadrant(quadrantCC, y, x);
 		case 1:
 		case 2:
@@ -52,10 +52,9 @@ public abstract class AbstractIndependentCastorAndPolluxEffectMatrix extends Eff
 			scale = 1.0f / sum;
 			Utils.scaleLine(line, scale);
 			
-
 			line = quadrantPP[i];
 			sum = Utils.getSum(line);
-			//NO PC quadrant in this implementation
+			//NO CP quadrant in this implementation
 			scale = 1.0f / sum;
 			Utils.scaleLine(line, scale);
 		}
@@ -67,42 +66,12 @@ public abstract class AbstractIndependentCastorAndPolluxEffectMatrix extends Eff
 		quadrantPC = null;				quadrantPP= new float[n][n];
 	}
 	
-	
 	@Override
-	public float[][] multiply(OpinionsMatrix x) {
-		float[][] ret = new float[x.points.length][x.d];
-		int n = EffectMatrix.n;
-		
-		// multiply into ret
-		for (int row = 0; row < x.data.length; row++) {
-			for (int col = 0; col < x.d; col++) {
-
-				float sum = 0;
-
-//				//ideally, this is how it should be
-//				for (int i = 0; i < 2* n ; i++) {
-//					sum += this.data[getQuadrant(rows, cols)][rows][i] * x.data[i][rows];
-//				}
-				
-				if (row < n) {
-					// CC and CP
-					for (int i = 0; i < n ; i++) {
-						sum += this.quadrantCC[row][i] * x.data[i][col];
-					}
-					//NO C --> P in this matrix
-				} else {
-					//PC and PP
-					//NO P --> C in this matrix
-					for (int i = 0; i < n ; i++) {
-						sum += this.quadrantPP[row - n][i] * x.data[i + n][col];
-					}
-				}
-				
-				ret[row][col] = sum;
-			}
+	float[][] getLine(int col) {
+		if (col < n) {
+			return new float[][] {quadrantCC[col],null};
+		} else {
+			return new float[][] {null,quadrantPP[col-n]};
 		}
-		
-		return ret;
 	}
-	
 }

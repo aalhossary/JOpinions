@@ -53,10 +53,10 @@ public class PointND {
 	}
 	
 	public float getDist(PointND other) {
-		return getDistRow(this.x, other.x);
+		return getDistRawData(this.x, other.x);
 	}
 
-	static float getDistRow(float[] x1, float[] x2) {
+	static float getDistRawData(float[] x1, float[] x2) {
 		double ret = 0;
 		for (int i = 0; i < x1.length; i++) {
 			float deltaX_i = x1[i]-x2[i];

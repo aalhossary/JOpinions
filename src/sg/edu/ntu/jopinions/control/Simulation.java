@@ -40,7 +40,7 @@ public class Simulation implements Runnable {
 	private String topology = TOPOLOGY_WATTS_STROGATZ_GRAPH;
 	private int dimensions = DEFAULT_NUM_DIMENSIONS;
 	
-	private static final long stepTimeMillis = 1_000;
+	private static final long stepTimeMillis = 1;//1_000;
 	
 	Thread runner= null;
 	long step = -1;
@@ -79,7 +79,6 @@ public class Simulation implements Runnable {
 		Graph<PointND, DefaultEdge>[] graphs = this.graphs;
 
 		float oneOverNSquare;
-		initVariables();
 		boolean converged = false;
 		step = 0;
 		oneOverNSquare= 1.0f / x.getD() / x.getD();
@@ -89,7 +88,7 @@ public class Simulation implements Runnable {
 
 		//TODO show initial state
 		if (verbose ) {
-			x.printTransposed(System.out);
+			x.print(System.out);
 			System.out.println();
 		}
 		
@@ -109,7 +108,7 @@ public class Simulation implements Runnable {
 
 			//update opinions
 			//opinionsMatrix = effectMatrix x opinionsMatrix
-			float[][] tempX = D.multiply(x);
+			float[][] tempX = x.multiply(D);
 			
 			//calculate the total system update (total absolute distance)
 			//TODO is it the update of X only, or X and D?
@@ -123,7 +122,7 @@ public class Simulation implements Runnable {
 
 			//TODO save tempX if you want
 			if (verbose ) {
-				x.printTransposed(System.out);
+				x.print(System.out);
 				System.out.println();
 			}
 
@@ -157,11 +156,6 @@ public class Simulation implements Runnable {
 		}
 		outputFinalStats();
 
-	}
-	
-	/**@deprecated no use.*/
-	private void initVariables() {
-		//May need to be populated
 	}
 
 	private void outputFinalStats() {

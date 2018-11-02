@@ -6,10 +6,9 @@ import java.util.Random;
 import sg.edu.ntu.jopinions.models.PointND.PointNDSupplier;
 
 /**This matrix is referenced in the text as x or x[t].<br>
- * The data is stored in one colum in the form of (c<sub>1</sub>c<sub>2</sub> · · · c<sub>n</sub>p<sub>1</sub>p<sub>2</sub> · · · p<sub>n</sub>).
- * Every row is a point of opinion in d dimensions.
+ * The data is stored in one row in the form of (c<sub>1</sub>c<sub>2</sub> · · · c<sub>n</sub>p<sub>1</sub>p<sub>2</sub> · · · p<sub>n</sub>).
+ * Every column is a point of opinion in d dimensions.
  * @author Amr
- *
  */
 public class OpinionsMatrix {
 	
@@ -28,15 +27,15 @@ public class OpinionsMatrix {
 	 * @param n
 	 */
 	public OpinionsMatrix(int n) {
-		this(n,1, true);
+		this(1,n, true);
 	}
-	/**Initialize the matrix with number of vertices x number of dimensions.<br> 
+	/**Initialize the matrix with number of dimensions x number of vertices.<br>
 	 * Note that the actual number of rows will be 2n not only n.
-	 * @param n number of couples (half number of vertices)
 	 * @param d number of dimensions.
-	 * @param initialize TODO
+	 * @param n number of couples (half number of vertices)
+	 * @param initialize fill the matrix with any dummy data
 	 */
-	public OpinionsMatrix(int n, int d, boolean initialize) {
+	public OpinionsMatrix(int d, int n, boolean initialize) {
 		this.n = n;
 		this.d = d;
 		
@@ -54,16 +53,6 @@ public class OpinionsMatrix {
 		}
 	}
 	
-	/**@deprecated use {@link #set(PointND[])}
-	 * @param data
-	 */
-	public void set(float[][] data) {
-		this.data = data;
-		for (int i = 0; i < points.length; i++) {
-			points[i].setX(data[i]);
-		}
-	}
-	
 	public void match(float[][] data) {
 		for (int i = 0; i < points.length; i++) {
 			PointND pointND = points[i];
@@ -78,7 +67,7 @@ public class OpinionsMatrix {
 		return n;
 	}
 	
-	public void print(PrintStream out) {
+	public void printTransposed(PrintStream out) {
 		for (int i = 0; i < data.length; i++) {
 			for (int j = 0; j < data[i].length; j++) {
 				out.format(OpinionsMatrix.outputFotmat, data[i][j]);
@@ -86,7 +75,7 @@ public class OpinionsMatrix {
 			out.println();
 		}
 	}
-	public void printTransposed(PrintStream out) {
+	public void print(PrintStream out) {
 		int d = this.d;
 		for (int i = 0; i < d; i++) {
 			for (int j = 0; j < points.length; j++) {
@@ -100,20 +89,20 @@ public class OpinionsMatrix {
 	public static void main(String[] args) {
 		//just a dummy code to test matrix maltiplication
 		
-		OpinionsMatrix mat1 = new OpinionsMatrix(7, 3, true);
+		OpinionsMatrix mat1 = new OpinionsMatrix(3, 7, true);
 		for (int i = 0; i < mat1.points.length; i++) {
 			PointND p = mat1.points[i];
 			for (int j = 0; j < p.x.length; j++) {
 				p.x[j] = i*10 + j;
 			}
 		}
-		mat1.print(System.out);
-		System.out.println();
 		mat1.printTransposed(System.out);
 		System.out.println();
+		mat1.print(System.out);
+		System.out.println();
 		
 		
-		OpinionsMatrix mat2 = new OpinionsMatrix(7, 3, true);
+		OpinionsMatrix mat2 = new OpinionsMatrix(3, 7, true);
 		for (int i = 0; i < mat2.points.length; i++) {
 			PointND p = mat2.points[i];
 			for (int j = 0; j < p.x.length; j++) {
@@ -121,7 +110,7 @@ public class OpinionsMatrix {
 			}
 		}
 		
-		mat2.printTransposed(System.out);
+		mat2.print(System.out);
 		
 		System.out.println();
 		System.out.println();
@@ -139,13 +128,7 @@ public class OpinionsMatrix {
 	public float calculateTotalDifference(float[][] tempX) {
 		float totalDiff=0;
 		for (int i = 0; i < points.length; i++) {
-			totalDiff += PointND.getDistRow(points[i].x, tempX[i]);
-			
-//			float[] point_i_x = points[i].x;
-//			for (int j = 0; j < point_i_x.length; j++) {
-//				totalDiff += Math.abs(point_i_x[j] - tempX[i][j]);
-//			}
-
+			totalDiff += PointND.getDistRawData(points[i].x, tempX[i]);
 		}
 		return totalDiff;
 	}
@@ -156,7 +139,8 @@ public class OpinionsMatrix {
 		}
 	}
 	public void set(PointND[] points) {
-		//TODO validate d and n
+		n=points.length/2;
+		d=PointND.d;
 		this.points = points;
 		this.data= new float[points.length][];
 		for (int i = 0; i < data.length; i++) {
@@ -171,5 +155,32 @@ public class OpinionsMatrix {
 				x[i] = random.nextFloat();//already from 0.0 to 1.0
 			}
 		}
+	}
+	
+	public float[][] multiply(EffectMatrix matrix) {
+		//Implement
+		float[][] ret = new float[points.length][d];
+		int n = EffectMatrix.n;
+		// multiply into ret
+		for (int row = 0; row < d; row++) {
+			for (int col = 0; col < points.length; col++) {
+				float sum = 0;
+				float[][] line = matrix.getLine(col);
+				float[] halfLine = line[0];
+				if (halfLine != null) {
+					for (int i = 0; i < halfLine.length; i++) {
+						sum += (halfLine[i] * data[i][row]);
+					}
+				}
+				halfLine = line[1];
+				if (halfLine != null) {
+					for (int i = 0; i < halfLine.length; i++) {
+						sum += (halfLine[i] * data[i+n][row]);
+					}
+				}
+				ret[col][row] = sum;
+			}
+		}
+		return ret;
 	}
 }
