@@ -159,7 +159,7 @@ public class GraphPanel<V, E> extends JPanel implements ComponentListener, Mouse
 		ArrayList<PointND> pulloxSourcesNoLoop = new ArrayList<>();
 		ArrayList<PointND> pulloxTargetsNoLoop = new ArrayList<>();
 		Set<DefaultEdge> castorEdgeSet = graphCC.edgeSet();
-		Set<DefaultEdge> pulloxEdgeSet = graphCC.edgeSet();
+		Set<DefaultEdge> pulloxEdgeSet = graphPP.edgeSet();
 		
 		for (Iterator<DefaultEdge> iterator = castorEdgeSet.iterator(); iterator.hasNext();) {
 			DefaultEdge edge = (DefaultEdge) iterator.next();
