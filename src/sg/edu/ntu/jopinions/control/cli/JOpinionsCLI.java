@@ -99,8 +99,10 @@ public class JOpinionsCLI {
 
 		case Simulation.TOPOLOGY_ERDOS_RENYI_GNP_RANDOM_GRAPH:
 			int numEdges	= Integer.valueOf(getParameter(args, "-edges", "0", "-1"));
-			if(numEdges == -1)
-				numEdges = numCouples * 3;
+			if(numEdges == -1) {
+//				numEdges = numCouples * 3;
+				numEdges = (numCouples*numCouples) * (numCouples-1)*(numCouples-1)/80;
+			}
 			generator = new GnmRandomGraphGenerator<>(numCouples, numEdges, seed);
 			break;
 
@@ -109,8 +111,8 @@ public class JOpinionsCLI {
 			if (sqrt != (int)sqrt) {
 				throw new RuntimeException("numCouples must have a square root for Kleinberg model");
 			}
-			int propabilityDistripution = Integer.valueOf(getParameter(args, "-r", "", "1"));
-			generator = new KleinbergSmallWorldGraphGenerator<>((int)sqrt, 2, 5, propabilityDistripution, seed);
+			int propabilityDistripution = Integer.valueOf(getParameter(args, "-r", "", "2"));
+			generator = new KleinbergSmallWorldGraphGenerator<>((int)sqrt, 1, (int)Math.ceil(sqrt / 100.0), propabilityDistripution, seed);
 			break;
 
 		case Simulation.TOPOLOGY_WATTS_STROGATZ_GRAPH:
