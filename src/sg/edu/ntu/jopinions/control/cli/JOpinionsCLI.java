@@ -52,6 +52,8 @@ public class JOpinionsCLI {
 			return;
 		}
 		Simulation simulation = new Simulation();
+		boolean verbose = Boolean.valueOf(getParameter(args, "-v", "true", "false"));
+		simulation.setVerbose(verbose);
 		int numCouples = Integer.valueOf(getParameter(args, "-numCouples", "-1", "1000"));
 		int numDimensions = Integer.valueOf(getParameter(args, "-dimensions", "", String.valueOf(Simulation.DEFAULT_NUM_DIMENSIONS)));
 		
@@ -103,8 +105,12 @@ public class JOpinionsCLI {
 			break;
 
 		case Simulation.TOPOLOGY_KLEINBERG_SMALL_WORLD_GRAPH:
+			double sqrt = Math.sqrt(numCouples);
+			if (sqrt != (int)sqrt) {
+				throw new RuntimeException("numCouples must have a square root for Kleinberg model");
+			}
 			int propabilityDistripution = Integer.valueOf(getParameter(args, "-r", "", "1"));
-			generator = new KleinbergSmallWorldGraphGenerator<>(numCouples, 2, 5, propabilityDistripution, seed);
+			generator = new KleinbergSmallWorldGraphGenerator<>((int)sqrt, 2, 5, propabilityDistripution, seed);
 			break;
 
 		case Simulation.TOPOLOGY_WATTS_STROGATZ_GRAPH:
@@ -117,6 +123,7 @@ public class JOpinionsCLI {
 			printUsage();
 			throw new IllegalArgumentException("Unknown topology: "+topology);
 		}
+		simulation.setTopology(topology);
 		return generator;
 	}
 	private static OpinionsMatrix createOpinionsMatrix(int numCouples, int numDimensions,

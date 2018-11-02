@@ -40,12 +40,12 @@ public class Simulation implements Runnable {
 	private String topology = TOPOLOGY_WATTS_STROGATZ_GRAPH;
 	private int dimensions = DEFAULT_NUM_DIMENSIONS;
 	
-	private static final long stepTimeMillis = 20_000;
+	private static final long stepTimeMillis = 1_000;
 	
 	Thread runner= null;
 	long step = -1;
 
-	private boolean verbose = true;
+	private boolean verbose = false;
 	
 	/**They are in order
 	 * <pre>
