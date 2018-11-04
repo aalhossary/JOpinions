@@ -13,14 +13,15 @@ public class PointND {
 	
 	String name;
 	float[] x;
-	/**for testing purposes only. should be removed later*/
-	private int id;
+	/**caching the ID to find its index faster*/
+	private int id = -1;
 	
 	
-	public PointND(String name, float[] x) {
+	public PointND(String name, float[] x, int id) {
 		checkDimensions(x);
 		this.name = name;
 		this.x = x;
+		this.id = id;
 	}
 	
 	/**
@@ -53,7 +54,7 @@ public class PointND {
 	}
 	
 	public float getDist(PointND other) {
-		return getDistRawData(this.x, other.x);
+		return this == other ? 0 : getDistRawData(this.x, other.x);
 	}
 
 	static float getDistRawData(float[] x1, float[] x2) {
@@ -65,14 +66,36 @@ public class PointND {
 		ret /= x1.length;
 		return (float) Math.sqrt(ret);
 	}
+	
+	public float[] minus(PointND other) {
+		return minusRawData(this.x, other.x);
+	}
+	public static float[] minusRawData(float[] p1, float[] p2) {
+		float[] ret = new float[p1.length];
+		for (int i = 0; i < ret.length; i++) {
+			ret[i]= p1[i]- p2[i];
+		}
+		return ret;
+	}
 
 	public void normalize() {
 		for (int i = 0; i < this.x.length; i++) {
 			float sum = Utils.getSum(this.x);
-			//NO PC quadrant in this implementation
-			float scale = 1.0f / sum;
-			Utils.scaleLine(this.x, scale);
+			final float scale = 1.0f / sum;
+			scale(scale);
 		}
+	}
+	public PointND scale(float scale) {
+		Utils.scaleLine(x, scale);
+		return this;
+	}
+	public PointND add(PointND other) {
+		float[] x = this.x;
+		float[] otherX = other.x;
+		for (int i = 0; i < x.length; i++) {
+			x[i] +=otherX[i];
+		}
+		return this;
 	}
 	public static void setNumDimensions(int d) {
 		PointND.d = d;
@@ -104,10 +127,15 @@ public class PointND {
 		}
 		@Override
 		public PointND get() {
-//			return new PointND(name, new float[numDim]);
-			PointND pointND = new PointND(name, new float[PointND.d]);
-			pointND.id = next++;
-			return pointND;
+			return new PointND(name, new float[PointND.d], next++);
 		}
+	}
+
+	public static float dotProductRawData(float[] e1, float[] e2) {
+		float ret = 0;
+		for (int i = 0; i < e2.length; i++) {
+			ret += e1[i]*e2[i];
+		}
+		return ret;
 	}
 }

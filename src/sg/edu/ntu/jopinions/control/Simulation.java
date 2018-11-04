@@ -36,7 +36,7 @@ public class Simulation implements Runnable {
 	public static final float EPSILON= 1E-1f; //Float.MIN_VALUE;
 
 	private static final long MAX_STEPS = 10_000_000;
-	private String model = MODEL_INDEPENDENT_NETWORKED_CASTOR_AND_POLLUX;
+	private String modelNameString = MODEL_INDEPENDENT_NETWORKED_CASTOR_AND_POLLUX;
 	private String topology = TOPOLOGY_WATTS_STROGATZ_GRAPH;
 	private int dimensions = DEFAULT_NUM_DIMENSIONS;
 	
@@ -93,7 +93,7 @@ public class Simulation implements Runnable {
 		}
 		
 		//TODO fix the temp JFrame
-		JFrame frame = new JFrame("JOpinions Simulation ["+topology+", "+model+"]");
+		JFrame frame = new JFrame("JOpinions Simulation ["+topology+", "+modelNameString+"]");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		GraphPanel<PointND, DefaultEdge> panel = new GraphPanel<>();
 		panel.setGraphs(graphs);
@@ -226,13 +226,13 @@ public class Simulation implements Runnable {
 	}
 
 
-	public String getModel() {
-		return model;
+	public String getModelNameString() {
+		return modelNameString;
 	}
 
 
-	public void setModel(String model) {
-		this.model = model;
+	public void setModelNameString(String model) {
+		this.modelNameString = model;
 	}
 
 	

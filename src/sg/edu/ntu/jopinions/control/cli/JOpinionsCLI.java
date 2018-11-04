@@ -16,7 +16,10 @@ import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.util.SupplierUtil;
 
 import sg.edu.ntu.jopinions.control.Simulation;
+import sg.edu.ntu.jopinions.models.CoupledNetworkedCastorAndPolluxBetaEffectMatrix;
+import sg.edu.ntu.jopinions.models.CoupledNetworkedCastorAndPolluxPhiEffectMatrix;
 import sg.edu.ntu.jopinions.models.EffectMatrix;
+import sg.edu.ntu.jopinions.models.FullyCoupledNetworkedCastorAndPolluxEffectMatrix;
 import sg.edu.ntu.jopinions.models.IndependentCastorAndPolluxEffectMatrix;
 import sg.edu.ntu.jopinions.models.IndependentNetworkedCastorAndPolluxEffectMatrix;
 import sg.edu.ntu.jopinions.models.OpinionsMatrix;
@@ -48,7 +51,7 @@ public class JOpinionsCLI {
 		}
 		boolean demo = Boolean.valueOf(getParameter(args, "-demo", "true", "false"));
 		if(demo) {
-			cli.demo();
+			cli.demo(args);
 			return;
 		}
 		Simulation simulation = new Simulation();
@@ -76,6 +79,7 @@ public class JOpinionsCLI {
 		
 		//get model from parameters
 		EffectMatrix model = createDynamicsModel(args, simulation, numCouples);
+		
 		simulation.setD(model);
 
 		OpinionsMatrix x = createOpinionsMatrix(numCouples, numDimensions, graphCC, graphPP);
@@ -98,10 +102,10 @@ public class JOpinionsCLI {
 			break;
 
 		case Simulation.TOPOLOGY_ERDOS_RENYI_GNP_RANDOM_GRAPH:
-			int numEdges	= Integer.valueOf(getParameter(args, "-edges", "0", "-1"));
+			int numEdges = Integer.valueOf(getParameter(args, "-edges", "0", "-1"));
 			if(numEdges == -1) {
-				numEdges = numCouples * 3;
-//				numEdges = (numCouples*numCouples) * (numCouples-1)*(numCouples-1)/80;
+//				numEdges = numCouples * 3;
+				numEdges = (numCouples / 20) * (numCouples-1);
 			}
 			generator = new GnmRandomGraphGenerator<>(numCouples, numEdges, seed);
 			break;
@@ -145,8 +149,9 @@ public class JOpinionsCLI {
 		return x;
 	}
 	private static EffectMatrix createDynamicsModel(String[] args, Simulation simulation, int numCouples) {
-		String dynamicsModelString = getParameter(args, "-model", null, simulation.getModel());
+		String dynamicsModelString = getParameter(args, "-model", null, simulation.getModelNameString());
 		EffectMatrix model;
+		float phi, beta;
 		switch (dynamicsModelString) {
 		case Simulation.MODEL_INDEPENDENT_CASTOR_AND_POLLUX:
 			model = new IndependentCastorAndPolluxEffectMatrix(numCouples);
@@ -155,20 +160,21 @@ public class JOpinionsCLI {
 			model = new IndependentNetworkedCastorAndPolluxEffectMatrix(numCouples);
 			break;
 		case Simulation.MODEL_COUPLED_NETWORK_CASTOR_AND_POLLUX_PHI:
-			//TODO create a class and use it
-			model = null;
+			phi = Float.valueOf(getParameter(args, "-phi", "", ""+CoupledNetworkedCastorAndPolluxPhiEffectMatrix.DEFAULT_PHI));
+			model = new CoupledNetworkedCastorAndPolluxPhiEffectMatrix(numCouples,phi);
 			break;
 		case Simulation.MODEL_COUPLED_NETWORK_CASTOR_AND_POLLUX_Beta:
-			//TODO create a class and use it
-			model = null;
+			beta = Float.valueOf(getParameter(args, "-beta", "", ""+CoupledNetworkedCastorAndPolluxBetaEffectMatrix.DEFAULT_BETA));
+			model = new CoupledNetworkedCastorAndPolluxBetaEffectMatrix(numCouples,beta);
 			break;
 		case Simulation.MODEL_FULLY_COUPLED_NETWORKED_CASTOR_AND_POLLUX:
-			//TODO create a class and use it
-			model = null;
+			beta = Float.valueOf(getParameter(args, "-beta", "", ""+CoupledNetworkedCastorAndPolluxBetaEffectMatrix.DEFAULT_BETA));
+			model = new FullyCoupledNetworkedCastorAndPolluxEffectMatrix(numCouples, beta);
 			break;
 		default:
 			throw new IllegalArgumentException("Unknown model parameter: "+dynamicsModelString);
 		}
+		simulation.setModelNameString(dynamicsModelString);
 		return model;
 	}
 
@@ -193,30 +199,34 @@ public class JOpinionsCLI {
 	}
 	
 	
-	private void demo() {
+	private void demo(String[] args) {
 		int dimensions = 3;
-		int numCouples=5;
+		int numCouples=Integer.parseInt(getParameter(args, "-numCouples", "", "10"));
 		Simulation simulation = new Simulation();
+		boolean verbose = Boolean.valueOf(getParameter(args, "-v", "true", ""+simulation.isVerbose()));
+		simulation.setVerbose(verbose);
+
 		Graph<PointND, DefaultEdge> gCC = new DefaultDirectedGraph<>(DefaultEdge.class);
 		Graph<PointND, DefaultEdge> gPP = new DefaultDirectedGraph<>(DefaultEdge.class);
 		@SuppressWarnings("unchecked")
 		Graph<PointND, DefaultEdge>[] graphs = (Graph<PointND, DefaultEdge>[]) new Graph[]{gCC, null,null,gPP};
 		simulation.setGraphs(graphs);
 //		simulation.setD(new IndependentCastorAndPolluxEffectMatrix(pairs));
-		simulation.setD(new IndependentNetworkedCastorAndPolluxEffectMatrix(numCouples));
-		
+		EffectMatrix model = createDynamicsModel(args, simulation, numCouples);
+		simulation.setD(model);
+
 		OpinionsMatrix x = new OpinionsMatrix(dimensions, numCouples, true);
 		float[][] data = new float[2*numCouples][dimensions];
 
 		data[0] = 			new float[] {1,0,0};
-		data[2*numCouples-1] = 	new float[] {0,1,0};
+		data[numCouples] = 	new float[] {0,1,0};
 		float delta = 1.0f / ((data.length/2)-1-1);
 		for (int i = 1; i < data.length/2; i++) {
 			float alpha = (i-1) * delta;
 			//castors
 			data[i] = new float[] { ((0.5f * alpha) + (0.5f * (1-alpha))), (0+(0.5f * (1-alpha))), ((0.5f *alpha)+0)};
 			//pulloxes
-			data[data.length-i-1] = new float[] { ((0.5f *alpha)+0), ((0.5f * alpha) + (0.5f * (1-alpha))), (0+(0.5f * (1-alpha)))};
+			data[data.length-i] = new float[] { ((0.5f *alpha)+0), ((0.5f * alpha) + (0.5f * (1-alpha))), (0+(0.5f * (1-alpha)))};
 		}
 		
 		x.match(data);
@@ -237,9 +247,8 @@ public class JOpinionsCLI {
 			gPP.addEdge(pPoints.get(i), pPoints.get(i));
 		}
 		Graphs.addOutgoingEdges(gCC,cPoints.get(0), cPoints);
-		Graphs.addOutgoingEdges(gPP,pPoints.get(numCouples-1), pPoints);//pairs-1
-		
-		
+		Graphs.addOutgoingEdges(gPP,pPoints.get(0), pPoints);
+
 		simulation.start();
 	}
 	
