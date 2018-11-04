@@ -44,10 +44,9 @@ public class OpinionsMatrix {
 			PointND.d = d;
 			PointND[] points = new PointND[2 * n];
 			//share the same data variables between the 2D array and individual points (vertices)
-			for (int i = 0; i < points.length; i++) {
-				float[] data = new float[d];
-				String name = i < n ? PointNDSupplier.CASTOR : PointNDSupplier.PULLOX;
-				points[i] = new PointND(name, data);
+			for (int i = 0; i < n; i++) {
+				points[i] 		= new PointND(PointNDSupplier.CASTOR, new float[d], i);
+				points[i + n]	= new PointND(PointNDSupplier.PULLOX, new float[d], i);
 			}
 			set(points);
 		}

@@ -30,8 +30,7 @@ public abstract class AbstractIndependentCastorAndPolluxEffectMatrix extends Eff
 		case 2:
 			return 0;
 		case 3:
-//			return data[quadrant][y-n][x-n];
-			return getEffectWithinQuadrant(quadrantPP, y-n, x-n);
+			return getEffectWithinQuadrant(quadrantPP, y - n, x - n);
 		default:
 			throw new IllegalArgumentException("unexpeccted numbers ("+y+", "+x+")");
 		}
@@ -69,9 +68,9 @@ public abstract class AbstractIndependentCastorAndPolluxEffectMatrix extends Eff
 	@Override
 	float[][] getLine(int col) {
 		if (col < n) {
-			return new float[][] {quadrantCC[col],null};
+			return new float[][] {quadrantCC[col], null};
 		} else {
-			return new float[][] {null,quadrantPP[col-n]};
+			return new float[][] {null, quadrantPP[col - n]};
 		}
 	}
 }

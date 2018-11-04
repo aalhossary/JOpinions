@@ -30,7 +30,8 @@ public abstract class EffectMatrix {
 	protected float[][] quadrantPP = null;
 	
 	/**first dimension is quadrant (columns wise). 
-	 * second dimension is column number. third dimension is row number.*/
+	 * second dimension is column number. third dimension is row number.
+	 * This implementation is chosen to facilitate matrix multiplication as well as normalization.*/
 	protected float[][][] data;
 
 	/**
@@ -63,7 +64,7 @@ public abstract class EffectMatrix {
 	public abstract void normalize();
 	
 	protected float getEffectWithinQuadrant(float[][] quad, int y, int x) {
-		return quad[y][x];
+		return quad[x][y];
 	}
 	/**The order may be changed later
 	 * <pre>
