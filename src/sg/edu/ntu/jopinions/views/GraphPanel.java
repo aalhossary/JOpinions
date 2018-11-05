@@ -1,4 +1,4 @@
-package sg.edu.ntu.jopinions.control.gui;
+package sg.edu.ntu.jopinions.views;
 
 import java.awt.Color;
 import java.awt.Graphics;

@@ -8,10 +8,10 @@ import javax.swing.JFrame;
 import org.jgrapht.Graph;
 import org.jgrapht.graph.DefaultEdge;
 
-import sg.edu.ntu.jopinions.control.gui.GraphPanel;
 import sg.edu.ntu.jopinions.models.EffectMatrix;
 import sg.edu.ntu.jopinions.models.OpinionsMatrix;
 import sg.edu.ntu.jopinions.models.PointND;
+import sg.edu.ntu.jopinions.views.GraphPanel;
 
 /**I chose to implement {@link Runnable} instead of extending {@link Thread} to have better control on
  * the running simulation, as well as to avoid exposing harmful thread methods.
