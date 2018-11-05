@@ -15,6 +15,8 @@ import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.util.SupplierUtil;
 
+import sg.edu.ntu.jopinions.Constants;
+import sg.edu.ntu.jopinions.Defaults;
 import sg.edu.ntu.jopinions.control.Simulation;
 import sg.edu.ntu.jopinions.models.CoupledNetworkedCastorAndPolluxBetaEffectMatrix;
 import sg.edu.ntu.jopinions.models.CoupledNetworkedCastorAndPolluxPhiEffectMatrix;
@@ -58,7 +60,7 @@ public class JOpinionsCLI {
 		boolean verbose = Boolean.valueOf(getParameter(args, "-v", "true", "false"));
 		simulation.setVerbose(verbose);
 		int numCouples = Integer.valueOf(getParameter(args, "-numCouples", "-1", "1000"));
-		int numDimensions = Integer.valueOf(getParameter(args, "-dimensions", "", String.valueOf(Simulation.DEFAULT_NUM_DIMENSIONS)));
+		int numDimensions = Integer.valueOf(getParameter(args, "-dimensions", "", String.valueOf(Defaults.DEFAULT_NUM_DIMENSIONS)));
 		
 		PointND.setNumDimensions(numDimensions);
 		Graph<PointND,DefaultEdge> graphCC = new DefaultDirectedGraph<>(new PointNDSupplier(numDimensions, PointNDSupplier.CASTOR),SupplierUtil.createDefaultEdgeSupplier(),false);
@@ -67,7 +69,7 @@ public class JOpinionsCLI {
 		Graph<PointND,DefaultEdge> graphPP = new DefaultDirectedGraph<>(new PointNDSupplier(numDimensions, PointNDSupplier.PULLOX),SupplierUtil.createDefaultEdgeSupplier(),false);
 
 		//add Topology Random generators
-		GraphGenerator<PointND, DefaultEdge, PointND> generator = createModelGenerator(args, simulation, numCouples);
+		GraphGenerator<PointND, DefaultEdge, PointND> generator = createTopologyGenerator(args, simulation, numCouples);
 		generator.generateGraph(graphCC);
 		generator.generateGraph(graphPP);
 		graphCC.vertexSet().stream().forEach(vertix -> graphCC.addEdge(vertix, vertix));
@@ -89,19 +91,19 @@ public class JOpinionsCLI {
 		simulation.setX(x);
 		simulation.start();
 	}
-	private static GraphGenerator<PointND, DefaultEdge, PointND> createModelGenerator(String[] args,
+	private static GraphGenerator<PointND, DefaultEdge, PointND> createTopologyGenerator(String[] args,
 			Simulation simulation, int numCouples) {
 		GraphGenerator<PointND, DefaultEdge, PointND> generator;
 		long seed = Long.valueOf(getParameter(args, "-seed", "0", ""+System.currentTimeMillis())); // "123456789"
-		String topology = getParameter(args, "-topology", null, simulation.getTopology());
+		String topology = getParameter(args, "-topology", null, Defaults.DEFAULT_TOPOLOGY);
 		switch (topology) {
-		case Simulation.TOPOLOGY_BARABASI_ALBERT_GRAPH:
+		case Constants.TOPOLOGY_BARABASI_ALBERT_GRAPH:
 			int m0	= Integer.valueOf(getParameter(args, "-m0", "10", "10"));
 			int m 	= Integer.valueOf(getParameter(args, "-m",  "", "2"));
 			generator = new BarabasiAlbertGraphGenerator<>(m0, m, numCouples, seed);
 			break;
 
-		case Simulation.TOPOLOGY_ERDOS_RENYI_GNP_RANDOM_GRAPH:
+		case Constants.TOPOLOGY_ERDOS_RENYI_GNP_RANDOM_GRAPH:
 			int numEdges = Integer.valueOf(getParameter(args, "-edges", "0", "-1"));
 			if(numEdges == -1) {
 //				numEdges = numCouples * 3;
@@ -110,7 +112,7 @@ public class JOpinionsCLI {
 			generator = new GnmRandomGraphGenerator<>(numCouples, numEdges, seed);
 			break;
 
-		case Simulation.TOPOLOGY_KLEINBERG_SMALL_WORLD_GRAPH:
+		case Constants.TOPOLOGY_KLEINBERG_SMALL_WORLD_GRAPH:
 			double sqrt = Math.sqrt(numCouples);
 			if (sqrt != (int)sqrt) {
 				throw new RuntimeException("numCouples must have a square root for Kleinberg model");
@@ -119,7 +121,7 @@ public class JOpinionsCLI {
 			generator = new KleinbergSmallWorldGraphGenerator<>((int)sqrt, 1, (int)Math.ceil(sqrt / 100.0), propabilityDistripution, seed);
 			break;
 
-		case Simulation.TOPOLOGY_WATTS_STROGATZ_GRAPH:
+		case Constants.TOPOLOGY_WATTS_STROGATZ_GRAPH:
 			double propabilityRewiring = Double.valueOf(getParameter(args, "-p", "", "0.5"));
 			int connectToKNN = Integer.valueOf(getParameter(args, "-k", "", "6")); //must be even
 			generator = new WattsStrogatzGraphGenerator<>(numCouples, connectToKNN, propabilityRewiring, seed);
@@ -149,26 +151,26 @@ public class JOpinionsCLI {
 		return x;
 	}
 	private static EffectMatrix createDynamicsModel(String[] args, Simulation simulation, int numCouples) {
-		String dynamicsModelString = getParameter(args, "-model", null, simulation.getModelNameString());
+		String dynamicsModelString = getParameter(args, "-model", null, Defaults.DEFAULT_MODEL);
 		EffectMatrix model;
 		float phi, beta;
 		switch (dynamicsModelString) {
-		case Simulation.MODEL_INDEPENDENT_CASTOR_AND_POLLUX:
+		case Constants.MODEL_INDEPENDENT_CASTOR_AND_POLLUX:
 			model = new IndependentCastorAndPolluxEffectMatrix(numCouples);
 			break;
-		case Simulation.MODEL_INDEPENDENT_NETWORKED_CASTOR_AND_POLLUX:
+		case Constants.MODEL_INDEPENDENT_NETWORKED_CASTOR_AND_POLLUX:
 			model = new IndependentNetworkedCastorAndPolluxEffectMatrix(numCouples);
 			break;
-		case Simulation.MODEL_COUPLED_NETWORK_CASTOR_AND_POLLUX_PHI:
-			phi = Float.valueOf(getParameter(args, "-phi", "", ""+CoupledNetworkedCastorAndPolluxPhiEffectMatrix.DEFAULT_PHI));
+		case Constants.MODEL_COUPLED_NETWORK_CASTOR_AND_POLLUX_PHI:
+			phi = Float.valueOf(getParameter(args, "-phi", "", ""+Defaults.DEFAULT_PHI));
 			model = new CoupledNetworkedCastorAndPolluxPhiEffectMatrix(numCouples,phi);
 			break;
-		case Simulation.MODEL_COUPLED_NETWORK_CASTOR_AND_POLLUX_Beta:
-			beta = Float.valueOf(getParameter(args, "-beta", "", ""+CoupledNetworkedCastorAndPolluxBetaEffectMatrix.DEFAULT_BETA));
+		case Constants.MODEL_COUPLED_NETWORK_CASTOR_AND_POLLUX_BETA:
+			beta = Float.valueOf(getParameter(args, "-beta", "", ""+Defaults.DEFAULT_BETA));
 			model = new CoupledNetworkedCastorAndPolluxBetaEffectMatrix(numCouples,beta);
 			break;
-		case Simulation.MODEL_FULLY_COUPLED_NETWORKED_CASTOR_AND_POLLUX:
-			beta = Float.valueOf(getParameter(args, "-beta", "", ""+CoupledNetworkedCastorAndPolluxBetaEffectMatrix.DEFAULT_BETA));
+		case Constants.MODEL_FULLY_COUPLED_NETWORKED_CASTOR_AND_POLLUX:
+			beta = Float.valueOf(getParameter(args, "-beta", "", ""+Defaults.DEFAULT_BETA));
 			model = new FullyCoupledNetworkedCastorAndPolluxEffectMatrix(numCouples, beta);
 			break;
 		default:

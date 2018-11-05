@@ -6,7 +6,8 @@ package sg.edu.ntu.jopinions.models;
 import org.jgrapht.Graph;
 import org.jgrapht.graph.DefaultEdge;
 
-import sg.edu.ntu.jopinions.control.Simulation;
+import sg.edu.ntu.jopinions.Constants;
+import sg.edu.ntu.jopinions.Defaults;
 
 /**
  * @author Amr
@@ -14,9 +15,8 @@ import sg.edu.ntu.jopinions.control.Simulation;
  */
 public class FullyCoupledNetworkedCastorAndPolluxEffectMatrix extends AbstractCoupledNetworkedCastorAndPolluxEffectMatrix {
 	
-	public static final float DEFAULT_BETA = 0.75f;
 	/**The coupling factor between corresponding Castors and pulloxes.*/
-	private float beta = DEFAULT_BETA;
+	private float beta = Defaults.DEFAULT_BETA;
 
 	/**
 	 * @param n
@@ -55,13 +55,13 @@ public class FullyCoupledNetworkedCastorAndPolluxEffectMatrix extends AbstractCo
 //					alpha = 1; yC = pointC, yP = pointP;
 //					float dist = 0;
 					nominator = oneMinusBeta;
-					denominator = Simulation.EPSILON; // + 0
+					denominator = Constants.EPSILON; // + 0
 					quadrantCC[i][i] = nominator / denominator;
 					quadrantPP[i][i] = nominator / denominator;
 
 					// PC and CP (my couple)
 					nominator = beta;
-					denominator = Simulation.EPSILON + PointND.getDistRawData(points[i].x, points[i+n].x);
+					denominator = Constants.EPSILON + PointND.getDistRawData(points[i].x, points[i+n].x);
 					quadrantPC[i][i] = nominator / denominator;
 					quadrantCP[i][i] = nominator / denominator;
 				} else {//other fellow Cs, other fellow Ps, or influencing others
@@ -104,7 +104,7 @@ public class FullyCoupledNetworkedCastorAndPolluxEffectMatrix extends AbstractCo
 						
 						//update PC
 						nominator = oneMinusBeta * oneMinusAlpha;
-						denominator = Simulation.EPSILON + yC.getDist(pointCj);
+						denominator = Constants.EPSILON + yC.getDist(pointCj);
 						quadrantPC[j][i] = nominator / denominator;
 						
 						//update CC
@@ -139,7 +139,7 @@ public class FullyCoupledNetworkedCastorAndPolluxEffectMatrix extends AbstractCo
 						
 						//update CP
 						nominator = oneMinusBeta * oneMinusAlpha;
-						denominator = Simulation.EPSILON + yP.getDist(pointPj);
+						denominator = Constants.EPSILON + yP.getDist(pointPj);
 						quadrantCP[j][i] = nominator / denominator;
 						
 						//update PP

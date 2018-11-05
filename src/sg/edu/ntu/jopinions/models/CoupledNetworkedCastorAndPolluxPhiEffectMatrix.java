@@ -8,7 +8,8 @@ import java.util.Iterator;
 import org.jgrapht.Graph;
 import org.jgrapht.graph.DefaultEdge;
 
-import sg.edu.ntu.jopinions.control.Simulation;
+import sg.edu.ntu.jopinions.Constants;
+import sg.edu.ntu.jopinions.Defaults;
 
 /**
  * @author Amr
@@ -17,7 +18,7 @@ import sg.edu.ntu.jopinions.control.Simulation;
 public class CoupledNetworkedCastorAndPolluxPhiEffectMatrix extends AbstractCoupledNetworkedCastorAndPolluxEffectMatrix {
 	
 	/**The coupling factor between corresponding Castors and pulloxes.*/
-	private float phi = DEFAULT_PHI;
+	private float phi = Defaults.DEFAULT_PHI;
 
 	/**
 	 * @param n
@@ -58,7 +59,7 @@ public class CoupledNetworkedCastorAndPolluxPhiEffectMatrix extends AbstractCoup
 			PointND edgeSource = graphCC.getEdgeSource(edge);
 			PointND edgeTarget = graphCC.getEdgeTarget(edge);
 			float dist = edgeSource.getDist(edgeTarget);
-			denominator = Simulation.EPSILON + dist;
+			denominator = Constants.EPSILON + dist;
 			//notice that the x dimension comes first in this implementation
 			quadrantCC[edgeTarget.getId()][edgeSource.getId()] = nominator / denominator;
 		}
@@ -69,7 +70,7 @@ public class CoupledNetworkedCastorAndPolluxPhiEffectMatrix extends AbstractCoup
 			PointND edgeSource = graphPP.getEdgeSource(edge);
 			PointND edgeTarget = graphPP.getEdgeTarget(edge);
 			float dist = edgeSource.getDist(edgeTarget);
-			denominator = Simulation.EPSILON + dist;
+			denominator = Constants.EPSILON + dist;
 			//notice that the x dimension comes first in this implementation
 			quadrantPP[edgeTarget.getId()][edgeSource.getId()] = nominator / denominator;
 		}

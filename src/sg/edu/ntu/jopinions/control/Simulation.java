@@ -8,6 +8,7 @@ import javax.swing.JFrame;
 import org.jgrapht.Graph;
 import org.jgrapht.graph.DefaultEdge;
 
+import sg.edu.ntu.jopinions.Defaults;
 import sg.edu.ntu.jopinions.models.EffectMatrix;
 import sg.edu.ntu.jopinions.models.OpinionsMatrix;
 import sg.edu.ntu.jopinions.models.PointND;
@@ -20,27 +21,10 @@ import sg.edu.ntu.jopinions.views.GraphPanel;
  */
 public class Simulation implements Runnable {
 	
-	public static final String MODEL_INDEPENDENT_CASTOR_AND_POLLUX				= "IndependentCastorAndPollux";
-	public static final String MODEL_INDEPENDENT_NETWORKED_CASTOR_AND_POLLUX	= "IndependentNetworkedCastorAndPollux";
-	public static final String MODEL_COUPLED_NETWORK_CASTOR_AND_POLLUX_PHI		= "CoupledNetworkCastorAndPollux-Phi";
-	public static final String MODEL_COUPLED_NETWORK_CASTOR_AND_POLLUX_Beta		= "CoupledNetworkCastorAndPollux-Beta";
-	public static final String MODEL_FULLY_COUPLED_NETWORKED_CASTOR_AND_POLLUX	= "FullyCoupledNetworkedCastorAndPollux";
-
-	public static final String TOPOLOGY_WATTS_STROGATZ_GRAPH 		= "WattsStrogatzGraph";
-	public static final String TOPOLOGY_BARABASI_ALBERT_GRAPH 		= "BarabasiAlbertGraph";
-	public static final String TOPOLOGY_ERDOS_RENYI_GNP_RANDOM_GRAPH= "GnpRandomGraph";
-	public static final String TOPOLOGY_KLEINBERG_SMALL_WORLD_GRAPH	= "KleinbergSmallWorldGraph";
-
-	public static final int DEFAULT_NUM_DIMENSIONS = 3;
-
-	public static final float EPSILON= 1E-1f; //Float.MIN_VALUE;
-
-	private static final long MAX_STEPS = 10_000_000;
-	private String modelNameString = MODEL_INDEPENDENT_NETWORKED_CASTOR_AND_POLLUX;
-	private String topology = TOPOLOGY_WATTS_STROGATZ_GRAPH;
-	private int dimensions = DEFAULT_NUM_DIMENSIONS;
+	private String modelNameString;
+	private String topology;
+	private int dimensions = Defaults.DEFAULT_NUM_DIMENSIONS;
 	
-	private static final long stepTimeMillis = 1;//1_000;
 	
 	Thread runner= null;
 	long step = -1;
@@ -101,7 +85,7 @@ public class Simulation implements Runnable {
 		frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
 		frame.setVisible(true);
 		
-		while (++step <= MAX_STEPS) {
+		while (++step <= Defaults.DEFAULT_MAX_STEPS) {
 			
 			//now I have transformation (effects) matrix and x (opinions) matrix
 			
@@ -137,7 +121,7 @@ public class Simulation implements Runnable {
 			//delay
 			try {
 				//TODO adjust ti later
-				Thread.sleep(stepTimeMillis);
+				Thread.sleep(Defaults.DEFAULT_STEP_DELAY_MILLIS);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
@@ -148,6 +132,8 @@ public class Simulation implements Runnable {
 			}
 //			step++;
 		}
+		
+//		panel.finishedSimulation();
 
 		if (converged) {
 			System.out.println("stopped because system converged after "+step+" step(s)");
@@ -155,7 +141,6 @@ public class Simulation implements Runnable {
 			System.out.println("stopped because system reached maximum mumber of steps ("+step+").");
 		}
 		outputFinalStats();
-
 	}
 
 	private void outputFinalStats() {

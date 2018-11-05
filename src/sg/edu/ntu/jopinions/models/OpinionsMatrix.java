@@ -3,6 +3,7 @@ package sg.edu.ntu.jopinions.models;
 import java.io.PrintStream;
 import java.util.Random;
 
+import sg.edu.ntu.jopinions.Defaults;
 import sg.edu.ntu.jopinions.models.PointND.PointNDSupplier;
 
 /**This matrix is referenced in the text as x or x[t].<br>
@@ -12,8 +13,6 @@ import sg.edu.ntu.jopinions.models.PointND.PointNDSupplier;
  */
 public class OpinionsMatrix {
 	
-	private static final String outputFotmat = "%10.5f";
-
 	/**Number of dimensions for each opinion (e.g. duration, expense). Must be a positive int.*/
 	int d;
 	
@@ -69,7 +68,7 @@ public class OpinionsMatrix {
 	public void printTransposed(PrintStream out) {
 		for (int i = 0; i < data.length; i++) {
 			for (int j = 0; j < data[i].length; j++) {
-				out.format(OpinionsMatrix.outputFotmat, data[i][j]);
+				out.format(Defaults.OUTPUT_FORMAT, data[i][j]);
 			}
 			out.println();
 		}
@@ -78,7 +77,7 @@ public class OpinionsMatrix {
 		int d = this.d;
 		for (int i = 0; i < d; i++) {
 			for (int j = 0; j < points.length; j++) {
-				out.format(OpinionsMatrix.outputFotmat, data[j][i]);
+				out.format(Defaults.OUTPUT_FORMAT, data[j][i]);
 			}
 			out.println();
 		}
@@ -119,7 +118,7 @@ public class OpinionsMatrix {
 		for (int i = 0; i < mat2.points.length; i++) {
 			PointND p2 = mat2.points[i];
 			double dist = p2.getDist(mat1.points[i]);
-			System.out.format(OpinionsMatrix.outputFotmat, dist);
+			System.out.format(Defaults.OUTPUT_FORMAT, dist);
 		}
 		System.out.println();
 		

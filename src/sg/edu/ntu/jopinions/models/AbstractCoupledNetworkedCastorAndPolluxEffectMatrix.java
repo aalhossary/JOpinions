@@ -9,9 +9,6 @@ package sg.edu.ntu.jopinions.models;
  */
 public abstract class AbstractCoupledNetworkedCastorAndPolluxEffectMatrix extends EffectMatrix {
 
-	public static final float DEFAULT_PHI = 0.75f;
-	public static final float DEFAULT_BETA = 0.75f;
-
 	/**
 	 * @param n
 	 */

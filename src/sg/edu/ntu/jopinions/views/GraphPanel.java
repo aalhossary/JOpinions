@@ -17,16 +17,13 @@ import javax.swing.event.MouseInputListener;
 import org.jgrapht.Graph;
 import org.jgrapht.graph.DefaultEdge;
 
+import sg.edu.ntu.jopinions.Defaults;
 import sg.edu.ntu.jopinions.models.PointND;
 
 public class GraphPanel<V, E> extends JPanel implements ComponentListener, MouseInputListener{
 	
-	private static final long serialVersionUID = 1L;
-	
-	public static final Color CASTOR_COLOR = Color.RED;
-	public static final Color PULLOX_COLOR = Color.BLUE;
-	public static final Color CONNECTION_COLOR = Color.BLACK;
-	
+	private static final long serialVersionUID = 4891309553805247705L;
+
 	private Graph<PointND, DefaultEdge>[] graphs;
 
 	private float xRatio;
@@ -79,7 +76,7 @@ public class GraphPanel<V, E> extends JPanel implements ComponentListener, Mouse
 		}
 		
 		//draw Pullox edges
-		g.setColor(PULLOX_COLOR);
+		g.setColor(Defaults.COLOR_PULLOX);
 		for (int i = 0; i < pulloxSourcesNoLoop.length; i++) {
 			float[] sourceCoord = pulloxSourcesNoLoop[i].getX_i();
 			float[] targetCoord = pulloxTargetsNoLoop[i].getX_i();
@@ -87,7 +84,7 @@ public class GraphPanel<V, E> extends JPanel implements ComponentListener, Mouse
 					   (int)(xRatio * targetCoord[0]) + xTranslation, (int)(yRatio * targetCoord[1]) + yTranslation);
 		}
 		//draw Castor edges
-		g.setColor(CASTOR_COLOR);
+		g.setColor(Defaults.COLOR_CASTOR);
 		for (int i = 0; i < castorSourcesNoLoop.length; i++) {
 			float[] sourceCoord = castorSourcesNoLoop[i].getX_i();
 			float[] targetCoord = castorTargetsNoLoop[i].getX_i();
@@ -96,7 +93,7 @@ public class GraphPanel<V, E> extends JPanel implements ComponentListener, Mouse
 		}
 		
 		//draw Castor Vertices
-		g.setColor(CASTOR_COLOR);
+		g.setColor(Defaults.COLOR_CASTOR);
 		for (int i = 0; i < castorPointNDs.length; i++) {
 			float[] opinion = castorPointNDs[i].getX_i();
 			int pointX = (int) (xRatio * opinion[0]);
@@ -104,7 +101,7 @@ public class GraphPanel<V, E> extends JPanel implements ComponentListener, Mouse
 			g.fillOval((pointX - 2) + xTranslation, (pointY - 2) + yTranslation, 4, 4);
 		}
 		//draw Pullox Vertices
-		g.setColor(PULLOX_COLOR);
+		g.setColor(Defaults.COLOR_PULLOX);
 		for (int i = 0; i < pulloxPointNDs.length; i++) {
 			float[] opinion = pulloxPointNDs[i].getX_i();
 			int pointX = (int) (xRatio * opinion[0]);
@@ -253,5 +250,10 @@ public class GraphPanel<V, E> extends JPanel implements ComponentListener, Mouse
 	public void mouseEntered(MouseEvent e) {}
 	@Override
 	public void mouseExited(MouseEvent e) {}
+
+//	public void finishedSimulation() {
+//		setBackground(Color.WHITE);
+//		repaint();
+//	}
 	
 }

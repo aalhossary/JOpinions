@@ -6,7 +6,7 @@ package sg.edu.ntu.jopinions.models;
 import org.jgrapht.Graph;
 import org.jgrapht.graph.DefaultEdge;
 
-import sg.edu.ntu.jopinions.control.Simulation;
+import sg.edu.ntu.jopinions.Constants;
 
 /**
  * @author Amr
@@ -41,7 +41,7 @@ public class IndependentNetworkedCastorAndPolluxEffectMatrix extends AbstractInd
 				if(nominator == 0) {
 					quadrantCC[j][i] = 0;
 				}else {
-					double denom= Simulation.EPSILON + ci.getDist(cj);
+					double denom= Constants.EPSILON + ci.getDist(cj);
 					quadrantCC[j][i] = (float) (nominator/denom); //TODO revise
 				}
 			}
@@ -56,7 +56,7 @@ public class IndependentNetworkedCastorAndPolluxEffectMatrix extends AbstractInd
 				if(nominator == 0) {
 					quadrantPP[j][i] = 0;
 				}else {
-					double denom= Simulation.EPSILON + pi.getDist(pj);
+					double denom= Constants.EPSILON + pi.getDist(pj);
 					quadrantPP[j][i] = (float) (nominator/denom); //TODO revise
 				}
 			}
