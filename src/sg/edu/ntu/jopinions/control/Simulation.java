@@ -133,7 +133,7 @@ public class Simulation implements Runnable {
 //			step++;
 		}
 		
-//		panel.finishedSimulation();
+		panel.finishedSimulation();
 
 		if (converged) {
 			System.out.println("stopped because system converged after "+step+" step(s)");

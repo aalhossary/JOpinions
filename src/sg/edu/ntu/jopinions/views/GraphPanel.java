@@ -251,9 +251,9 @@ public class GraphPanel<V, E> extends JPanel implements ComponentListener, Mouse
 	@Override
 	public void mouseExited(MouseEvent e) {}
 
-//	public void finishedSimulation() {
-//		setBackground(Color.WHITE);
-//		repaint();
-//	}
+	public void finishedSimulation() {
+		setBackground(Color.WHITE);
+		repaint();
+	}
 	
 }
