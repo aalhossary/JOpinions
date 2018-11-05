@@ -5,6 +5,7 @@ import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
+import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -47,6 +48,7 @@ public class GraphPanel<V, E> extends JPanel implements ComponentListener, Mouse
 	private int yTranslation = 0;
 
 	private boolean zooming = false;
+	private boolean button3Down = false;
 	
 	public GraphPanel() {
 		this.addComponentListener(this);
@@ -72,7 +74,7 @@ public class GraphPanel<V, E> extends JPanel implements ComponentListener, Mouse
 		for (int i = 0; i < castorPointNDs.length; i++) {
 			float[] castorX = castorPointNDs[i].getX_i();
 			float[] pulloxX = pulloxPointNDs[i].getX_i();
-			g.drawLine((int)(xRatio * castorX[0]) + xTranslation, (int)(yRatio * castorX[1]) + yTranslation, 
+			g.drawLine((int)(xRatio * castorX[0]) + xTranslation, (int)(yRatio * castorX[1]) + yTranslation,
 					   (int)(xRatio * pulloxX[0]) + xTranslation, (int)(yRatio * pulloxX[1]) + yTranslation);
 		}
 		
@@ -110,8 +112,9 @@ public class GraphPanel<V, E> extends JPanel implements ComponentListener, Mouse
 			g.fillOval((pointX - 2) + xTranslation, (pointY - 2) + yTranslation, 4, 4);
 		}
 		
-		if(this.pressPoint != null) {
-			Point pressPoint = this.pressPoint;
+		Point pressPoint = this.pressPoint;
+		Point currentPoint = this.currentPoint;
+		if(pressPoint != null && currentPoint != null) {
 			int x = Math.min(pressPoint.x, currentPoint.x);
 			int y = Math.min(pressPoint.y, currentPoint.y);
 			int w = Math.abs(pressPoint.x - currentPoint.x);
@@ -190,7 +193,13 @@ public class GraphPanel<V, E> extends JPanel implements ComponentListener, Mouse
 	@Override
 	public void mouseMoved(MouseEvent e) {}
 	@Override
-	public void mouseClicked(MouseEvent e) {}
+	public void mouseClicked(MouseEvent e) {
+		if ((e.getModifiersEx() & InputEvent.BUTTON3_DOWN_MASK) != 0) {
+			this.xRatio /= 2.0;
+			this.yRatio /= 2.0;
+			repaint();
+		}
+	}
 	@Override
 	public void mouseDragged(MouseEvent e) {
 		this.zooming = true;
@@ -200,32 +209,43 @@ public class GraphPanel<V, E> extends JPanel implements ComponentListener, Mouse
 	@Override
 	public void mousePressed(MouseEvent e) {
 		pressPoint = e.getPoint();
+		if ((e.getModifiersEx() & InputEvent.BUTTON3_DOWN_MASK)  == InputEvent.BUTTON3_DOWN_MASK) {
+			this.button3Down = true;
+		}
 	}
 
 	@Override
 	public void mouseReleased(MouseEvent e) {
-		if (!zooming) {
-			return;
+		if (this.button3Down && (e.getModifiersEx() & InputEvent.BUTTON3_DOWN_MASK) != InputEvent.BUTTON3_DOWN_MASK ) {
+			float viewportZeroOriginalX = (0 - xTranslation) / xRatio;
+			float viewportZeroOriginalY = (0 - yTranslation) / yRatio;
+			this.xRatio /= 2.0;
+			this.yRatio /= 2.0;
+			this.xTranslation = -((int)(viewportZeroOriginalX*xRatio) - getWidth()/4);
+			this.yTranslation = -((int)(viewportZeroOriginalY*yRatio) - getHeight()/4);
+			this.button3Down = false;
 		}
-		Point releasePoint = 
-				/*this.releasePoint=*/ 
-				e.getPoint();
-		Point pressPoint = this.pressPoint;
-		int x = Math.min(pressPoint.x, releasePoint.x);
-		int y = Math.min(pressPoint.y, releasePoint.y);
-		int w = Math.abs(pressPoint.x - releasePoint.x);
-		int h = Math.abs(pressPoint.y - releasePoint.y);
-		float originalX = (x-xTranslation) / xRatio;
-		float originalY = (y-yTranslation) / yRatio;
-		float originalW = (w + x-xTranslation) / xRatio;
-		float originalH = (h + y-yTranslation) / yRatio; //if we want to include every pixel , it may need to be a little more complicated
-		//now take the action
-		this.xRatio = (getWidth() / originalW);
-		this.yRatio = (getHeight()/ originalH);
-		this.xTranslation = - ((int) (originalX*xRatio) - x);
-		this.yTranslation = - ((int) (originalY*yRatio) - y);
-		this.pressPoint = null;
-		this.zooming = false;
+		if (zooming) {
+			zooming = false;
+			Point releasePoint = 
+					/*this.releasePoint=*/ 
+					e.getPoint();
+			Point pressPoint = this.pressPoint;
+			this.pressPoint = this.currentPoint = null;
+			int x = Math.min(pressPoint.x, releasePoint.x);
+			int y = Math.min(pressPoint.y, releasePoint.y);
+			int w = Math.abs(pressPoint.x - releasePoint.x);
+			int h = Math.abs(pressPoint.y - releasePoint.y);
+			float originalX = (x - xTranslation) / xRatio;
+			float originalY = (y - yTranslation) / yRatio;
+			float originalW = w / xRatio;
+			float originalH = h / yRatio; //if we want to include every pixel in the zoomed-in box, it may need to be a little more complicated
+			//now take the action
+			this.xRatio = (getWidth() / originalW);
+			this.yRatio = (getHeight()/ originalH);
+			this.xTranslation = - ((int) (originalX*xRatio));
+			this.yTranslation = - ((int) (originalY*yRatio));
+		}
 		repaint();
 	}
 
