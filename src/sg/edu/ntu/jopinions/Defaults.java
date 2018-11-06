@@ -21,7 +21,8 @@ public interface Defaults extends Constants {
 	String DEFAULT_TOPOLOGY = TOPOLOGY_WATTS_STROGATZ_GRAPH;
 	String DEFAULT_MODEL = MODEL_INDEPENDENT_NETWORKED_CASTOR_AND_POLLUX;
 	
-	public String OUTPUT_FORMAT = "%10.5f";
+	/**it already includes one extra space to separate entries*/
+	public String OUTPUT_FORMAT = "%10.7f";
 	
 	Color COLOR_CASTOR = Color.RED;
 	Color COLOR_PULLOX = Color.BLUE;

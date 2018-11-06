@@ -98,7 +98,7 @@ public class GraphPanel<V, E> extends JPanel implements ComponentListener, Mouse
 			float[] opinion = castorPointNDs[i].getX_i();
 			int pointX = (int) (xRatio * opinion[0]);
 			int pointY = (int) (yRatio * opinion[1]);
-			g.fillOval((pointX - 2) + xTranslation, (pointY - 2) + yTranslation, 4, 4);
+			g.fillOval((pointX - 3) + xTranslation, (pointY - 3) + yTranslation, 6, 6);
 		}
 		//draw Pullox Vertices
 		g.setColor(Defaults.COLOR_PULLOX);
@@ -106,7 +106,7 @@ public class GraphPanel<V, E> extends JPanel implements ComponentListener, Mouse
 			float[] opinion = pulloxPointNDs[i].getX_i();
 			int pointX = (int) (xRatio * opinion[0]);
 			int pointY = (int) (yRatio * opinion[1]);
-			g.fillOval((pointX - 2) + xTranslation, (pointY - 2) + yTranslation, 4, 4);
+			g.fillOval((pointX - 3) + xTranslation, (pointY - 3) + yTranslation, 6, 6);
 		}
 		
 		Point pressPoint = this.pressPoint;
