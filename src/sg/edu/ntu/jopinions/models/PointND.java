@@ -15,6 +15,9 @@ public class PointND {
 	float[] x;
 	/**caching the ID to find its index faster*/
 	private int id = -1;
+
+	private int inDegree;
+	private int outDegree;
 	
 	
 	public PointND(String name, float[] x, int id) {
@@ -138,5 +141,24 @@ public class PointND {
 			ret += e1[i]*e2[i];
 		}
 		return ret;
+	}
+	
+	public String getName() {
+		return name;
+	}
+	public int getInDegree() {
+		return inDegree;
+	}
+
+	public void setInDegree(int inDegree) {
+		this.inDegree = inDegree;
+	}
+
+	public int getOutDegree() {
+		return outDegree;
+	}
+
+	public void setOutDegree(int outDegree) {
+		this.outDegree = outDegree;
 	}
 }

@@ -6,6 +6,8 @@ import java.awt.Point;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -20,7 +22,7 @@ import org.jgrapht.graph.DefaultEdge;
 import sg.edu.ntu.jopinions.Defaults;
 import sg.edu.ntu.jopinions.models.PointND;
 
-public class GraphPanel<V, E> extends JPanel implements ComponentListener, MouseInputListener{
+public class GraphPanel<V, E> extends JPanel implements ComponentListener, MouseInputListener, KeyListener{
 	
 	private static final long serialVersionUID = 4891309553805247705L;
 
@@ -46,11 +48,15 @@ public class GraphPanel<V, E> extends JPanel implements ComponentListener, Mouse
 
 	private boolean zooming = false;
 	private boolean button3Down = false;
+
+	private boolean showNodeDetails = false;
 	
 	public GraphPanel() {
 		this.addComponentListener(this);
 		this.addMouseListener(this);
 		this.addMouseMotionListener(this);
+		this.setFocusable(true);
+		this.addKeyListener(this);
 	}
 
 	@Override
@@ -109,6 +115,16 @@ public class GraphPanel<V, E> extends JPanel implements ComponentListener, Mouse
 			g.fillOval((pointX - 3) + xTranslation, (pointY - 3) + yTranslation, 6, 6);
 		}
 		
+		if (showNodeDetails) {
+			float minX= (0 - xTranslation)/xRatio;
+			float minY= (0 - yTranslation)/yRatio;
+			float maxX= (getWidth() - xTranslation)/xRatio;
+			float maxY= (getHeight()- yTranslation)/yRatio;
+			showNodeDetails(minX, minY, maxX, maxY, castorPointNDs, g);
+			showNodeDetails(minX, minY, maxX, maxY, pulloxPointNDs, g);
+		}
+		
+		
 		Point pressPoint = this.pressPoint;
 		Point currentPoint = this.currentPoint;
 		if(pressPoint != null && currentPoint != null) {
@@ -118,6 +134,29 @@ public class GraphPanel<V, E> extends JPanel implements ComponentListener, Mouse
 			int h = Math.abs(pressPoint.y - currentPoint.y);
 			g.setColor(Color.BLACK);
 			g.drawRect(x, y, w, h);
+		}
+	}
+
+	private void showNodeDetails(float minX, float minY, float maxX, float maxY, PointND[] points, Graphics g) {
+		Color color;
+		int shift;
+		if (points[0].toString().startsWith("C")) {
+			color = Defaults.COLOR_CASTOR;
+			shift = 0;
+		} else {
+			color = Defaults.COLOR_PULLOX;
+			shift = g.getFontMetrics().getHeight();
+		}
+		for (int i = 0; i < points.length; i++) {
+			PointND point = points[i];
+			float[] coords = point.getX_i();
+			final float x = coords[0];
+			final float y = coords[1];
+			if (x < minX || x > maxX || y < minY || y > maxY)
+				continue;
+			g.setColor(color);
+			g.drawString(String.format("%s%d(%d)", point.getName(), point.getId(),point.getInDegree()),
+					(int)(x*xRatio + xTranslation), (int)(y*yRatio + yTranslation + shift));
 		}
 	}
 
@@ -254,6 +293,25 @@ public class GraphPanel<V, E> extends JPanel implements ComponentListener, Mouse
 	public void finishedSimulation() {
 		setBackground(Color.WHITE);
 		repaint();
+	}
+
+	@Override
+	public void keyTyped(KeyEvent e) {}
+
+	@Override
+	public void keyPressed(KeyEvent e) {
+		if (e.getKeyCode() == KeyEvent.VK_SHIFT) {
+			showNodeDetails = true;
+			repaint();
+		}
+	}
+
+	@Override
+	public void keyReleased(KeyEvent e) {
+		if (e.getKeyCode() == KeyEvent.VK_SHIFT) {
+			showNodeDetails = false;
+			repaint();
+		}
 	}
 	
 }

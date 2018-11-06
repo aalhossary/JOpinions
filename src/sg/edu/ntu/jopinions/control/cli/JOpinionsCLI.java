@@ -1,6 +1,7 @@
 package sg.edu.ntu.jopinions.control.cli;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -75,6 +76,9 @@ public class JOpinionsCLI {
 		generator.generateGraph(graphPP);
 		graphCC.vertexSet().stream().forEach(vertix -> graphCC.addEdge(vertix, vertix));
 		graphPP.vertexSet().stream().forEach(vertix -> graphPP.addEdge(vertix, vertix));
+		
+		cacheVerticesDegrees(graphCC);
+		cacheVerticesDegrees(graphPP);
 
 		@SuppressWarnings("unchecked")
 		Graph<PointND, DefaultEdge>[] graphs = (Graph<PointND, DefaultEdge>[]) new Graph[]{graphCC, null, null,graphPP};
@@ -91,6 +95,14 @@ public class JOpinionsCLI {
 		x.randomize(seed);
 		simulation.setX(x);
 		simulation.start();
+	}
+	private static void cacheVerticesDegrees(Graph<PointND, DefaultEdge> graphCC) {
+		Iterator<PointND> iterator = graphCC.vertexSet().iterator();
+		while (iterator.hasNext()) {
+			PointND vertex = (PointND) iterator.next();
+			vertex.setInDegree(graphCC.inDegreeOf(vertex));
+			vertex.setOutDegree(graphCC.outDegreeOf((vertex)));
+		}
 	}
 	private static GraphGenerator<PointND, DefaultEdge, PointND> createTopologyGenerator(String[] args,
 			Simulation simulation, int numCouples) {
