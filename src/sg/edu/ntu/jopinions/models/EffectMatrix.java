@@ -3,8 +3,12 @@
  */
 package sg.edu.ntu.jopinions.models;
 
+import java.io.PrintStream;
+
 import org.jgrapht.Graph;
 import org.jgrapht.graph.DefaultEdge;
+
+import sg.edu.ntu.jopinions.Defaults;
 
 /**This matrix is described in the text as D.<br>
  * It contains 4 submatrices.
@@ -20,6 +24,8 @@ import org.jgrapht.graph.DefaultEdge;
  */
 public abstract class EffectMatrix {
 
+//	public static final String SPACE_AND_OUTPUT_FORMAT = " " + Defaults.OUTPUT_FORMAT;
+
 	/**Number of P-C couples in the system. */
 	protected static int n;
 	
@@ -34,6 +40,8 @@ public abstract class EffectMatrix {
 	 * This implementation is chosen to facilitate matrix multiplication as well as normalization.*/
 	protected float[][][] data;
 
+	private static String ZEROS;
+
 	/**
 	 * @param n number of entities, usually couples. May be singles if all Pulluxes are not connected to all Castors.
 	 */
@@ -42,6 +50,13 @@ public abstract class EffectMatrix {
 		//initialize matrix quadrants
 		initQuadrants(n);
 		data = new float[][][] {quadrantCC, quadrantPC, quadrantCP, quadrantPP};
+
+		StringBuilder temp = new StringBuilder();
+//		String format = SPACE_AND_OUTPUT_FORMAT;
+		for (int i = 0; i < n; i++) {
+			temp.append(String.format(Defaults.OUTPUT_FORMAT, 0.0));
+		}
+		ZEROS = temp.toString();
 	}
 	protected abstract void initQuadrants(int n);
 	/**This function does not calculate nor update anything. It is just a getter.
@@ -87,4 +102,32 @@ public abstract class EffectMatrix {
 	 * the quadrant and the second is the row number
 	 */
 	abstract float[][] getLine(int col);
+	
+	public void print(PrintStream out) {
+		printQuadrants(out, new float[][][] {quadrantCC,quadrantCP});
+		printQuadrants(out, new float[][][] {quadrantPC,quadrantPP});
+	}
+	private void printQuadrants(PrintStream out, float[][][] targetQuadrants) {
+		int n = EffectMatrix.n;
+		float[][] targetQuadrant0 = targetQuadrants[0];
+		float[][] targetQuadrant1 = targetQuadrants[1];
+		String ZEROS = EffectMatrix.ZEROS;
+		for (int i = 0; i < n; i++) {
+			if (targetQuadrant0 != null) {
+				for (int j = 0; j < n; j++) {
+					out.format(Defaults.OUTPUT_FORMAT, targetQuadrant0[j][i]);
+				}
+			} else {
+				out.print(ZEROS);
+			}
+			if (targetQuadrant1 != null) {
+				for (int j = 0; j < n; j++) {
+					out.format(Defaults.OUTPUT_FORMAT, targetQuadrant1[j][i]);
+				}
+			} else {
+				out.print(ZEROS);
+			}
+			out.println();
+		}
+	}
 }

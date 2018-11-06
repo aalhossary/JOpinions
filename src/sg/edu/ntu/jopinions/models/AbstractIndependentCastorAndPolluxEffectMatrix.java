@@ -49,12 +49,18 @@ public abstract class AbstractIndependentCastorAndPolluxEffectMatrix extends Eff
 			sum = Utils.getSum(line);
 			//NO PC quadrant in this implementation
 			scale = 1.0f / sum;
+			if (Float.isNaN(scale)) {
+				throw new NaNException("NAN detected while normalizing D matrix in column " + i);
+			}
 			Utils.scaleLine(line, scale);
 			
 			line = quadrantPP[i];
 			sum = Utils.getSum(line);
 			//NO CP quadrant in this implementation
 			scale = 1.0f / sum;
+			if (Float.isNaN(scale)) {
+				throw new NaNException("NAN detected while normalizing D matrix in column " + (i+n));
+			}
 			Utils.scaleLine(line, scale);
 		}
 	}

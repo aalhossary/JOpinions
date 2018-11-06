@@ -3,6 +3,8 @@
  */
 package sg.edu.ntu.jopinions.control;
 
+import java.io.PrintStream;
+
 import javax.swing.JFrame;
 
 import org.jgrapht.Graph;
@@ -10,6 +12,7 @@ import org.jgrapht.graph.DefaultEdge;
 
 import sg.edu.ntu.jopinions.Defaults;
 import sg.edu.ntu.jopinions.models.EffectMatrix;
+import sg.edu.ntu.jopinions.models.NaNException;
 import sg.edu.ntu.jopinions.models.OpinionsMatrix;
 import sg.edu.ntu.jopinions.models.PointND;
 import sg.edu.ntu.jopinions.views.GraphPanel;
@@ -55,25 +58,22 @@ public class Simulation implements Runnable {
 	 */
 	@Override
 	public void run() {
-		//FIXME change this later
 		OpinionsMatrix x = this.getX();
 		x.normalize();
-		//TODO fill initial x values
 		EffectMatrix D = this.D;
 		Graph<PointND, DefaultEdge>[] graphs = this.graphs;
 
 		float oneOverNSquare;
 		boolean converged = false;
+		boolean nan = false;
 		step = 0;
 		oneOverNSquare= 1.0f / x.getD() / x.getD();
 		
 		D.updateUsing(x, graphs);
 		D.normalize();
 
-		//TODO show initial state
 		if (verbose ) {
-			x.print(System.out);
-			System.out.println();
+			printXAndD(x, D, System.out, System.out);
 		}
 		
 		//TODO fix the temp JFrame
@@ -85,62 +85,80 @@ public class Simulation implements Runnable {
 		frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
 		frame.setVisible(true);
 		
-		while (++step <= Defaults.DEFAULT_MAX_STEPS) {
-			
-			//now I have transformation (effects) matrix and x (opinions) matrix
-			
+		try {
+			while (++step <= Defaults.DEFAULT_MAX_STEPS) {
+				//now I have transformation (effects) matrix and x (opinions) matrix
 
-			//update opinions
-			//opinionsMatrix = effectMatrix x opinionsMatrix
-			float[][] tempX = x.multiply(D);
-			
-			//calculate the total system update (total absolute distance)
-			//TODO is it the update of X only, or X and D?
-			float totalAbsDist = x.calculateTotalDifference(tempX);
-			converged = totalAbsDist < (oneOverNSquare / step);
-			System.out.format("Step = %d, Total Diff = %8.5Ed, Converged = %b\n", step, totalAbsDist, converged);
+				//update opinions
+				//opinionsMatrix = opinionsMatrix x effectMatrix
+				float[][] tempX = x.multiply(D);
 
-			//x = tempX;
-			x.match(tempX);
-			x.normalize();
+				//calculate the total system update (total absolute distance)
+				//TODO is it the update of X only, or X and D?
+				float totalAbsDist = x.calculateTotalDifference(tempX);
+				converged = totalAbsDist < (oneOverNSquare / step);
 
-			//TODO save tempX if you want
-			if (verbose ) {
-				x.print(System.out);
-				System.out.println();
-			}
+				//x = tempX;
+				x.match(tempX);
+				x.normalize();
 
-			
-			D.updateUsing(x, graphs);
-			D.normalize();
-			
+				//TODO save tempX if you want
 
-			//Show updates on GUI
-			panel.repaint();
+				D.updateUsing(x, graphs);
+				D.normalize();
+				
+				//==============simulation step proper ends here ================
+				System.out.format("Step = %d, Total Diff = %8.5E, Converged = %b\n", step, totalAbsDist, converged);
 
-			//delay
-			try {
-				//TODO adjust ti later
-				Thread.sleep(Defaults.DEFAULT_STEP_DELAY_MILLIS);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-			
-			//TODO output opinionsMatrix and EffectMatrix
-			if (converged) {
-				break;
-			}
-//			step++;
+				//Show updates on GUI
+				panel.repaint();
+
+				//output opinionsMatrix and EffectMatrix
+				if (verbose ) {
+					printXAndD(x, D, System.out, System.out);
+				}
+
+				//delay
+				try {
+					//TODO adjust it later
+					Thread.sleep(Defaults.DEFAULT_STEP_DELAY_MILLIS);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+
+				if (converged) {
+					break;
+				}
+			}//End of loop
+
+		}catch (NaNException e) {
+			nan = true;
+			System.err.println(e.getMessage());
 		}
 		
 		panel.finishedSimulation();
 
 		if (converged) {
-			System.out.println("stopped because system converged after "+step+" step(s)");
+			System.out.format("stopped because system converged after %d steps", step);
+		} else if (nan){
+			System.out.format("stopped because an error occured in step %d.", step);
 		} else {
-			System.out.println("stopped because system reached maximum mumber of steps ("+step+").");
+			step--;//because it exceeded the target by 1 already
+			System.out.format("stopped because system reached maximum mumber of steps (%d).", step);
 		}
 		outputFinalStats();
+	}
+
+
+	private void printXAndD(OpinionsMatrix opinionsMatrix, EffectMatrix effectMatrix, PrintStream out1, PrintStream out2) {
+		opinionsMatrix.print(out1);
+		out1.println();
+		effectMatrix.print(out2);
+		out2.println();
+		out1.println();
+		if (out1 != out2) {
+			out2.println();
+		}
 	}
 
 	private void outputFinalStats() {

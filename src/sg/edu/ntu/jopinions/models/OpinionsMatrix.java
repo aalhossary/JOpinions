@@ -176,6 +176,9 @@ public class OpinionsMatrix {
 						sum += (halfLine[i] * data[i+n][row]);
 					}
 				}
+				if (Float.isNaN(sum)) {
+					throw new NaNException("NAN detected while multiplying X x D in position ("+ (row + n) + ", " + col + ")");
+				}
 				ret[col][row] = sum;
 			}
 		}

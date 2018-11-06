@@ -82,6 +82,9 @@ public class PointND {
 		float sum = Utils.getSum(this.x);
 		final float scale = 1.0f / sum;
 		scale(scale);
+		if (Float.isNaN(scale)) {
+			throw new NaNException("NAN detected while normalizing opinion point "+ toString());
+		}
 	}
 	public PointND scale(float scale) {
 		Utils.scaleLine(x, scale);

@@ -52,6 +52,9 @@ public abstract class AbstractCoupledNetworkedCastorAndPolluxEffectMatrix extend
 			sum += Utils.getSum(line2);
 
 			scale = 1.0f / sum;
+			if (Float.isNaN(scale)) {
+				throw new NaNException("NAN detected while normalizing D matrix in column " + i);
+			}
 			Utils.scaleLine(line1, scale);
 			Utils.scaleLine(line2, scale);
 			
@@ -60,6 +63,9 @@ public abstract class AbstractCoupledNetworkedCastorAndPolluxEffectMatrix extend
 			line2 = quadrantPP[i];
 			sum += Utils.getSum(line2);
 			scale = 1.0f / sum;
+			if (Float.isNaN(scale)) {
+				throw new NaNException("NAN detected while normalizing D matrix in column " + (i+n));
+			}
 			Utils.scaleLine(line1, scale);
 			Utils.scaleLine(line2, scale);
 		}
