@@ -27,6 +27,7 @@ import sg.edu.ntu.jopinions.models.IndependentNetworkedCastorAndPolluxEffectMatr
 import sg.edu.ntu.jopinions.models.OpinionsMatrix;
 import sg.edu.ntu.jopinions.models.PointND;
 import sg.edu.ntu.jopinions.models.PointND.PointNDSupplier;
+import sg.edu.ntu.jopinions.models.Utils;
 
 public class JOpinionsCLI {
 	
@@ -46,21 +47,21 @@ public class JOpinionsCLI {
 			printUsage();
 		}
 		
-		boolean help = Boolean.valueOf(getParameter(args, "-h", "true", "false")) || Boolean.valueOf(getParameter(args, "-help", "true", "false"));
+		boolean help = Boolean.valueOf(Utils.getParameter(args, "-h", "true", "false")) || Boolean.valueOf(Utils.getParameter(args, "-help", "true", "false"));
 		if (help) {
 			printUsage();
 			return;
 		}
-		boolean demo = Boolean.valueOf(getParameter(args, "-demo", "true", "false"));
+		boolean demo = Boolean.valueOf(Utils.getParameter(args, "-demo", "true", "false"));
 		if(demo) {
 			cli.demo(args);
 			return;
 		}
 		Simulation simulation = new Simulation();
-		boolean verbose = Boolean.valueOf(getParameter(args, "-v", "true", "false"));
+		boolean verbose = Boolean.valueOf(Utils.getParameter(args, "-v", "true", "false"));
 		simulation.setVerbose(verbose);
-		int numCouples = Integer.valueOf(getParameter(args, "-numCouples", "-1", "1000"));
-		int numDimensions = Integer.valueOf(getParameter(args, "-dimensions", "", String.valueOf(Defaults.DEFAULT_NUM_DIMENSIONS)));
+		int numCouples = Integer.valueOf(Utils.getParameter(args, "-numCouples", "-1", "1000"));
+		int numDimensions = Integer.valueOf(Utils.getParameter(args, "-dimensions", "", String.valueOf(Defaults.DEFAULT_NUM_DIMENSIONS)));
 		
 		PointND.setNumDimensions(numDimensions);
 		Graph<PointND,DefaultEdge> graphCC = new DefaultDirectedGraph<>(new PointNDSupplier(numDimensions, PointNDSupplier.CASTOR),SupplierUtil.createDefaultEdgeSupplier(),false);
@@ -86,7 +87,7 @@ public class JOpinionsCLI {
 
 		OpinionsMatrix x = createOpinionsMatrix(numCouples, numDimensions, graphCC, graphPP);
 		//TODO remove the local variable seed later
-		long seed = Long.valueOf(getParameter(args, "-seed", "0", ""+System.currentTimeMillis()));// "123456789"
+		long seed = Long.valueOf(Utils.getParameter(args, "-seed", "0", ""+System.currentTimeMillis()));// "123456789"
 		x.randomize(seed);
 		simulation.setX(x);
 		simulation.start();
@@ -94,17 +95,17 @@ public class JOpinionsCLI {
 	private static GraphGenerator<PointND, DefaultEdge, PointND> createTopologyGenerator(String[] args,
 			Simulation simulation, int numCouples) {
 		GraphGenerator<PointND, DefaultEdge, PointND> generator;
-		long seed = Long.valueOf(getParameter(args, "-seed", "0", ""+System.currentTimeMillis())); // "123456789"
-		String topology = getParameter(args, "-topology", null, Defaults.DEFAULT_TOPOLOGY);
+		long seed = Long.valueOf(Utils.getParameter(args, "-seed", "0", ""+System.currentTimeMillis())); // "123456789"
+		String topology = Utils.getParameter(args, "-topology", null, Defaults.DEFAULT_TOPOLOGY);
 		switch (topology) {
 		case Constants.TOPOLOGY_BARABASI_ALBERT_GRAPH:
-			int m0	= Integer.valueOf(getParameter(args, "-m0", "10", "10"));
-			int m 	= Integer.valueOf(getParameter(args, "-m",  "", "2"));
+			int m0	= Integer.valueOf(Utils.getParameter(args, "-m0", "10", "10"));
+			int m 	= Integer.valueOf(Utils.getParameter(args, "-m",  "", "2"));
 			generator = new BarabasiAlbertGraphGenerator<>(m0, m, numCouples, seed);
 			break;
 
 		case Constants.TOPOLOGY_ERDOS_RENYI_GNP_RANDOM_GRAPH:
-			int numEdges = Integer.valueOf(getParameter(args, "-edges", "0", "-1"));
+			int numEdges = Integer.valueOf(Utils.getParameter(args, "-edges", "0", "-1"));
 			if(numEdges == -1) {
 //				numEdges = numCouples * 3;
 				numEdges = (numCouples / 20) * (numCouples-1);
@@ -117,13 +118,13 @@ public class JOpinionsCLI {
 			if (sqrt != (int)sqrt) {
 				throw new RuntimeException("numCouples must have a square root for Kleinberg model");
 			}
-			int propabilityDistripution = Integer.valueOf(getParameter(args, "-r", "", "2"));
+			int propabilityDistripution = Integer.valueOf(Utils.getParameter(args, "-r", "", "2"));
 			generator = new KleinbergSmallWorldGraphGenerator<>((int)sqrt, 1, (int)Math.ceil(sqrt / 100.0), propabilityDistripution, seed);
 			break;
 
 		case Constants.TOPOLOGY_WATTS_STROGATZ_GRAPH:
-			double propabilityRewiring = Double.valueOf(getParameter(args, "-p", "", "0.5"));
-			int connectToKNN = Integer.valueOf(getParameter(args, "-k", "", "6")); //must be even
+			double propabilityRewiring = Double.valueOf(Utils.getParameter(args, "-p", "", "0.5"));
+			int connectToKNN = Integer.valueOf(Utils.getParameter(args, "-k", "", "6")); //must be even
 			generator = new WattsStrogatzGraphGenerator<>(numCouples, connectToKNN, propabilityRewiring, seed);
 			break;
 
@@ -151,7 +152,7 @@ public class JOpinionsCLI {
 		return x;
 	}
 	private static EffectMatrix createDynamicsModel(String[] args, Simulation simulation, int numCouples) {
-		String dynamicsModelString = getParameter(args, "-model", null, Defaults.DEFAULT_MODEL);
+		String dynamicsModelString = Utils.getParameter(args, "-model", null, Defaults.DEFAULT_MODEL);
 		EffectMatrix model;
 		float phi, beta;
 		switch (dynamicsModelString) {
@@ -162,15 +163,15 @@ public class JOpinionsCLI {
 			model = new IndependentNetworkedCastorAndPolluxEffectMatrix(numCouples);
 			break;
 		case Constants.MODEL_COUPLED_NETWORK_CASTOR_AND_POLLUX_PHI:
-			phi = Float.valueOf(getParameter(args, "-phi", "", ""+Defaults.DEFAULT_PHI));
+			phi = Float.valueOf(Utils.getParameter(args, "-phi", "", ""+Defaults.DEFAULT_PHI));
 			model = new CoupledNetworkedCastorAndPolluxPhiEffectMatrix(numCouples,phi);
 			break;
 		case Constants.MODEL_COUPLED_NETWORK_CASTOR_AND_POLLUX_BETA:
-			beta = Float.valueOf(getParameter(args, "-beta", "", ""+Defaults.DEFAULT_BETA));
+			beta = Float.valueOf(Utils.getParameter(args, "-beta", "", ""+Defaults.DEFAULT_BETA));
 			model = new CoupledNetworkedCastorAndPolluxBetaEffectMatrix(numCouples,beta);
 			break;
 		case Constants.MODEL_FULLY_COUPLED_NETWORKED_CASTOR_AND_POLLUX:
-			beta = Float.valueOf(getParameter(args, "-beta", "", ""+Defaults.DEFAULT_BETA));
+			beta = Float.valueOf(Utils.getParameter(args, "-beta", "", ""+Defaults.DEFAULT_BETA));
 			model = new FullyCoupledNetworkedCastorAndPolluxEffectMatrix(numCouples, beta);
 			break;
 		default:
@@ -203,9 +204,9 @@ public class JOpinionsCLI {
 	
 	private void demo(String[] args) {
 		int dimensions = 3;
-		int numCouples=Integer.parseInt(getParameter(args, "-numCouples", "", "10"));
+		int numCouples=Integer.parseInt(Utils.getParameter(args, "-numCouples", "", "10"));
 		Simulation simulation = new Simulation();
-		boolean verbose = Boolean.valueOf(getParameter(args, "-v", "true", ""+simulation.isVerbose()));
+		boolean verbose = Boolean.valueOf(Utils.getParameter(args, "-v", "true", ""+simulation.isVerbose()));
 		simulation.setVerbose(verbose);
 
 		Graph<PointND, DefaultEdge> gCC = new DefaultDirectedGraph<>(DefaultEdge.class);
@@ -250,32 +251,7 @@ public class JOpinionsCLI {
 		}
 		Graphs.addOutgoingEdges(gCC,cPoints.get(0), cPoints);
 		Graphs.addOutgoingEdges(gPP,pPoints.get(0), pPoints);
-
 		simulation.start();
-	}
-	
-	public static String getParameter(String[] args, String parameter, String defaultValueIfParameterFound, String valueIfNotFound) {
-		boolean flagFound=false;
-		String input= defaultValueIfParameterFound;
-		for (int i = 0; i < args.length; i++) {
-			if (args[i].equals(parameter)) {
-				flagFound=true;
-				if (i+1 >= args.length) {
-					break;
-				}
-				String nextArg = args[i+1];
-				if (nextArg.startsWith("-")) {
-					break;
-				} else {
-					input = nextArg;
-				}
-				i+=1;
-			}
-		}
-		if (!flagFound) {
-			return valueIfNotFound;
-		}
-		return input;
 	}
 
 }
