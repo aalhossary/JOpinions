@@ -79,11 +79,9 @@ public class PointND {
 	}
 
 	public void normalize() {
-		for (int i = 0; i < this.x.length; i++) {
-			float sum = Utils.getSum(this.x);
-			final float scale = 1.0f / sum;
-			scale(scale);
-		}
+		float sum = Utils.getSum(this.x);
+		final float scale = 1.0f / sum;
+		scale(scale);
 	}
 	public PointND scale(float scale) {
 		Utils.scaleLine(x, scale);

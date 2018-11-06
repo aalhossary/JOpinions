@@ -43,19 +43,20 @@ public class CoupledNetworkedCastorAndPolluxBetaEffectMatrix extends AbstractCou
 //		Graph<PointND, DefaultEdge> graphCP = graphs[2];
 		Graph<PointND, DefaultEdge> graphPP = graphs[3];
 		float beta = this.beta;
-		float nominator = 1 - beta, denominator;
+		float nominator, denominator;
 		
 		//fill PC and CP
+		nominator = beta;
 		for (int i = 0; i < n; i++) {
 			float[][] pointX = x.data;
-			denominator =  PointND.getDistRawData(pointX[i], pointX[i+n]);
-			quadrantPC[i][i] = beta / denominator;
-			quadrantCP[i][i] = beta / denominator;
+			denominator =  Constants.EPSILON + PointND.getDistRawData(pointX[i], pointX[i+n]);
+			quadrantPC[i][i] = quadrantCP[i][i] = nominator / denominator;
 		}
 		
 		//We will iterate on graph edges better than on n^2
 
 		//fill CC
+		nominator = 1 - beta;
 		Iterator<DefaultEdge> edgesCCIerator = graphCC.edgeSet().iterator();
 		while (edgesCCIerator.hasNext()) {
 			DefaultEdge edge = (DefaultEdge) edgesCCIerator.next();

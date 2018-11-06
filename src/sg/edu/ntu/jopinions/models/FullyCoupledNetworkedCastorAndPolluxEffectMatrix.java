@@ -56,14 +56,12 @@ public class FullyCoupledNetworkedCastorAndPolluxEffectMatrix extends AbstractCo
 //					float dist = 0;
 					nominator = oneMinusBeta;
 					denominator = Constants.EPSILON; // + 0
-					quadrantCC[i][i] = nominator / denominator;
-					quadrantPP[i][i] = nominator / denominator;
+					quadrantCC[i][i] = quadrantPP[i][i] = nominator / denominator;
 
 					// PC and CP (my couple)
 					nominator = beta;
 					denominator = Constants.EPSILON + PointND.getDistRawData(points[i].x, points[i+n].x);
-					quadrantPC[i][i] = nominator / denominator;
-					quadrantCP[i][i] = nominator / denominator;
+					quadrantPC[i][i] = quadrantCP[i][i] = nominator / denominator;
 				} else {//other fellow Cs, other fellow Ps, or influencing others
 					PointND pointCi= x.points[i];
 					PointND pointCj= x.points[j];
