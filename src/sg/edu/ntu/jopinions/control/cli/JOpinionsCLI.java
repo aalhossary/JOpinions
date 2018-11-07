@@ -1,9 +1,11 @@
 package sg.edu.ntu.jopinions.control.cli;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import org.jgrapht.Graph;
 import org.jgrapht.Graphs;
@@ -93,8 +95,58 @@ public class JOpinionsCLI {
 		//TODO remove the local variable seed later
 		long seed = Long.valueOf(Utils.getParameter(args, "-seed", "0", ""+System.currentTimeMillis()));// "123456789"
 		x.randomize(seed);
+
+		boolean ensureAllMovable = Boolean.valueOf(Utils.getParameter(args, "-ensureMovable", "true", "false"));
+		if (ensureAllMovable) {
+			ensureAtLeastOneIncomingEdge(graphCC);
+			ensureAtLeastOneIncomingEdge(graphPP);
+		}
 		simulation.setX(x);
 		simulation.start();
+	}
+	private static void ensureAtLeastOneIncomingEdge(Graph<PointND, DefaultEdge> graph) {
+		Iterator<PointND> iterator = graph.vertexSet().stream()
+				.filter(vertex -> graph.inDegreeOf(vertex) == 1) //only from itself
+				.iterator();
+		if ( ! iterator.hasNext()) {
+			System.out.println("nothing to optimize in " + graph);
+		}
+node:
+		while (iterator.hasNext()) {
+			PointND pointND = (PointND) iterator.next();
+			//candidates should have at least one remaining target (other than itself)
+			Stream<DefaultEdge> sortedCandidateEdges = graph.outgoingEdgesOf(pointND).stream()
+					.filter(edge -> graph.outDegreeOf(graph.getEdgeTarget(edge)) > 2)
+					.sorted(new Comparator<DefaultEdge>() {
+				@Override
+				public int compare(DefaultEdge o1, DefaultEdge o2) {
+					return graph.outDegreeOf(graph.getEdgeTarget(o1)) - graph.outDegreeOf(graph.getEdgeTarget(o2));
+				}
+			}.reversed());
+//			sortedCandidateEdges.forEachOrdered(edge -> System.out.println(edge.toString() + graph.outDegreeOf(graph.getEdgeTarget(edge))));
+			
+			Iterator<DefaultEdge> sortedCandidateEdgesIterator = sortedCandidateEdges.iterator();
+edge:
+			while (sortedCandidateEdgesIterator.hasNext()) {
+				DefaultEdge edge = (DefaultEdge) sortedCandidateEdgesIterator.next();
+				PointND edgeSource = pointND;
+				PointND edgeTarget = graph.getEdgeTarget(edge);
+				//ignore loop edges
+				//repeat check to avoid shrinking a node already shrunk in a previous operation
+				if (edgeSource == edgeTarget || edgeTarget.getInDegree() <= 1) {
+					continue edge;
+				}
+				graph.removeEdge(edge);
+				graph.addEdge(edgeTarget, edgeSource);
+				edgeSource.setInDegree (graph.inDegreeOf (edgeSource));
+				edgeSource.setOutDegree(graph.outDegreeOf(edgeSource));
+				edgeTarget.setInDegree (graph.inDegreeOf (edgeTarget));
+				edgeTarget.setOutDegree(graph.outDegreeOf(edgeTarget));
+				System.out.println("optimized " + pointND);
+				//TODO Anything else?
+				continue node;
+			}
+		}
 	}
 	private static void cacheVerticesDegrees(Graph<PointND, DefaultEdge> graphCC) {
 		Iterator<PointND> iterator = graphCC.vertexSet().iterator();
