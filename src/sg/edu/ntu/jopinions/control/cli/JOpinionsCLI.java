@@ -102,6 +102,9 @@ public class JOpinionsCLI {
 			ensureAtLeastOneIncomingEdge(graphPP);
 		}
 		simulation.setX(x);
+		
+		long stepDelayMillis = (long)(1000 * Float.valueOf(Utils.getParameter(args, "-dt", "", "" + Defaults.DEFAULT_STEP_DELAY_SECS)));
+		simulation.setStepDelayMillis(stepDelayMillis);
 		simulation.start();
 	}
 	private static void ensureAtLeastOneIncomingEdge(Graph<PointND, DefaultEdge> graph) {

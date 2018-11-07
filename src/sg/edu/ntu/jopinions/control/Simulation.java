@@ -26,8 +26,8 @@ public class Simulation implements Runnable {
 	
 	private String modelNameString;
 	private String topology;
-	private int dimensions = Defaults.DEFAULT_NUM_DIMENSIONS;
-	
+//	private int dimensions = Defaults.DEFAULT_NUM_DIMENSIONS;
+	private long stepDelayMillis;
 	
 	Thread runner= null;
 	long step = -1;
@@ -46,7 +46,7 @@ public class Simulation implements Runnable {
 
 	private EffectMatrix D;
 
-		
+
 	@SuppressWarnings("unchecked")
 	public Simulation() {
 		this.graphs =  (Graph<PointND, DefaultEdge>[]) new Graph[4] ;
@@ -84,7 +84,9 @@ public class Simulation implements Runnable {
 		frame.setContentPane(panel);
 		frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
 		frame.setVisible(true);
-		
+
+		long timeBeforeStep= System.currentTimeMillis(); 
+		long target = timeBeforeStep + stepDelayMillis;
 		try {
 			while (++step <= Defaults.DEFAULT_MAX_STEPS) {
 				//now I have transformation (effects) matrix and x (opinions) matrix
@@ -120,8 +122,10 @@ public class Simulation implements Runnable {
 
 				//delay
 				try {
-					//TODO adjust it later
-					Thread.sleep(Defaults.DEFAULT_STEP_DELAY_MILLIS);
+					long now = System.currentTimeMillis();
+					if(now < target) {
+						Thread.sleep(target - now);
+					}
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
@@ -129,6 +133,8 @@ public class Simulation implements Runnable {
 				if (converged) {
 					break;
 				}
+				timeBeforeStep=System.currentTimeMillis();
+				target = timeBeforeStep + stepDelayMillis;
 			}//End of loop
 
 		}catch (NaNException e) {
@@ -236,6 +242,14 @@ public class Simulation implements Runnable {
 
 	public void setModelNameString(String model) {
 		this.modelNameString = model;
+	}
+
+
+	public long getStepDelayMillis() {
+		return stepDelayMillis;
+	}
+	public void setStepDelayMillis(long stepDelayMillis) {
+		this.stepDelayMillis = stepDelayMillis;
 	}
 
 	
