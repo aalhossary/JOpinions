@@ -53,6 +53,7 @@ public class GraphPanel<V, E> extends JPanel implements ComponentListener, Mouse
 	
 	public GraphPanel() {
 		this.addComponentListener(this);
+		this.enableEvents(InputEvent.MOUSE_EVENT_MASK | InputEvent.MOUSE_MOTION_EVENT_MASK);
 		this.addMouseListener(this);
 		this.addMouseMotionListener(this);
 		this.setFocusable(true);
@@ -64,13 +65,12 @@ public class GraphPanel<V, E> extends JPanel implements ComponentListener, Mouse
 		super.paintComponent(g);
 		float xRatio = this.xRatio, yRatio = this.yRatio;
 
-		//TODO draw background
+		//TODO draw background and axes
 		
 		Graph<PointND, DefaultEdge>[] graphs = this.graphs;
 		if (graphs == null) {
 			return;
 		}
-		//TODO draw BG and axes
 
 		//draw Castor-Pullox edges
 		g.setColor(Color.BLACK);
@@ -229,23 +229,20 @@ public class GraphPanel<V, E> extends JPanel implements ComponentListener, Mouse
 	@Override
 	public void mouseMoved(MouseEvent e) {}
 	@Override
-	public void mouseClicked(MouseEvent e) {
-		if ((e.getModifiersEx() & InputEvent.BUTTON3_DOWN_MASK) != 0) {
-			this.xRatio /= 2.0;
-			this.yRatio /= 2.0;
-			repaint();
-		}
-	}
+	public void mouseClicked(MouseEvent e) {}
 	@Override
 	public void mouseDragged(MouseEvent e) {
-		this.zooming = true;
-		this.currentPoint = e.getPoint();
+		//Zooming will not considered unless done using the left button
+		if ((e.getModifiersEx() & InputEvent.BUTTON1_DOWN_MASK) != 0) {
+			this.zooming = true;
+			this.currentPoint = e.getPoint();
+		}
 		repaint();
 	}
 	@Override
 	public void mousePressed(MouseEvent e) {
 		pressPoint = e.getPoint();
-		if ((e.getModifiersEx() & InputEvent.BUTTON3_DOWN_MASK)  == InputEvent.BUTTON3_DOWN_MASK) {
+		if ((e.getModifiersEx() & InputEvent.BUTTON3_DOWN_MASK)  != 0) {
 			this.button3Down = true;
 		}
 	}
@@ -261,7 +258,7 @@ public class GraphPanel<V, E> extends JPanel implements ComponentListener, Mouse
 			this.yTranslation = -((int)(viewportZeroOriginalY*yRatio) - getHeight()/4);
 			this.button3Down = false;
 		}
-		if (zooming) {
+		if (zooming && this.pressPoint != null) { //no need to check currentPoint because we simply don't use it here (yet)
 			zooming = false;
 			Point releasePoint = 
 					/*this.releasePoint=*/ 
@@ -270,8 +267,9 @@ public class GraphPanel<V, E> extends JPanel implements ComponentListener, Mouse
 			this.pressPoint = this.currentPoint = null;
 			int x = Math.min(pressPoint.x, releasePoint.x);
 			int y = Math.min(pressPoint.y, releasePoint.y);
-			int w = Math.abs(pressPoint.x - releasePoint.x);
-			int h = Math.abs(pressPoint.y - releasePoint.y);
+			//Ading max(1, value) is probably the ultimate fix
+			int w = Math.max(1, Math.abs(pressPoint.x - releasePoint.x));
+			int h = Math.max(1, Math.abs(pressPoint.y - releasePoint.y));
 			float originalX = (x - xTranslation) / xRatio;
 			float originalY = (y - yTranslation) / yRatio;
 			float originalW = w / xRatio;
