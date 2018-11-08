@@ -16,6 +16,7 @@ import org.jgrapht.generate.KleinbergSmallWorldGraphGenerator;
 import org.jgrapht.generate.WattsStrogatzGraphGenerator;
 import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
+import org.jgrapht.graph.EdgeReversedGraph;
 import org.jgrapht.util.SupplierUtil;
 
 import sg.edu.ntu.jopinions.Constants;
@@ -35,6 +36,7 @@ import sg.edu.ntu.jopinions.models.Utils;
 public class JOpinionsCLI {
 	
 	private static JOpinionsCLI instance=null;
+	private static boolean verbose;
 	
 	private JOpinionsCLI() {}
 	public static JOpinionsCLI getInstance() {
@@ -61,7 +63,7 @@ public class JOpinionsCLI {
 			return;
 		}
 		Simulation simulation = new Simulation();
-		boolean verbose = Boolean.valueOf(Utils.getParameter(args, "-v", "true", "false"));
+		verbose = Boolean.valueOf(Utils.getParameter(args, "-v", "true", "false"));
 		simulation.setVerbose(verbose);
 		int numCouples = Integer.valueOf(Utils.getParameter(args, "-numCouples", "-1", "1000"));
 		int numDimensions = Integer.valueOf(Utils.getParameter(args, "-dimensions", "", String.valueOf(Defaults.DEFAULT_NUM_DIMENSIONS)));
@@ -76,8 +78,19 @@ public class JOpinionsCLI {
 		GraphGenerator<PointND, DefaultEdge, PointND> generator = createTopologyGenerator(args, simulation, numCouples);
 		generator.generateGraph(graphCC);
 		generator.generateGraph(graphPP);
-		graphCC.vertexSet().stream().forEach(vertix -> graphCC.addEdge(vertix, vertix));
-		graphPP.vertexSet().stream().forEach(vertix -> graphPP.addEdge(vertix, vertix));
+		
+		addloops(graphCC);
+		addloops(graphPP);
+
+		boolean flip = Boolean.parseBoolean(Utils.getParameter(args, "-flip", "true", "false"));
+		if (flip) {
+			graphCC = new EdgeReversedGraph<PointND, DefaultEdge>(graphCC);
+			graphPP = new EdgeReversedGraph<PointND, DefaultEdge>(graphPP);
+		}
+		
+		
+		//Both graphs should be ready before passing this line
+		//======================================================
 		
 		cacheVerticesDegrees(graphCC);
 		cacheVerticesDegrees(graphPP);
@@ -101,6 +114,7 @@ public class JOpinionsCLI {
 			ensureAtLeastOneIncomingEdge(graphCC);
 			ensureAtLeastOneIncomingEdge(graphPP);
 		}
+		
 		simulation.setX(x);
 		
 		long stepDelayMillis = (long)(1000 * Float.valueOf(Utils.getParameter(args, "-dt", "", "" + Defaults.DEFAULT_STEP_DELAY_SECS)));
@@ -113,7 +127,7 @@ public class JOpinionsCLI {
 				.iterator();
 		if ( ! iterator.hasNext()) {
 			System.out.println("nothing to optimize in " + graph);
-		}
+	}
 node:
 		while (iterator.hasNext()) {
 			PointND pointND = (PointND) iterator.next();
@@ -139,6 +153,7 @@ edge:
 				if (edgeSource == edgeTarget || edgeTarget.getInDegree() <= 1) {
 					continue edge;
 				}
+				//TODO test against random value
 				graph.removeEdge(edge);
 				graph.addEdge(edgeTarget, edgeSource);
 				edgeSource.setInDegree (graph.inDegreeOf (edgeSource));
