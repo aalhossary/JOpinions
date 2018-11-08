@@ -155,7 +155,7 @@ public class GraphPanel<V, E> extends JPanel implements ComponentListener, Mouse
 			if (x < minX || x > maxX || y < minY || y > maxY)
 				continue;
 			g.setColor(color);
-			g.drawString(String.format("%s%d(%d)", point.getName(), point.getId(),point.getInDegree()),
+			g.drawString(String.format("%s%d(%d, %d)", point.getName(), point.getId(),point.getInDegree(), point.getOutDegree()),
 					(int)(x*xRatio + xTranslation), (int)(y*yRatio + yTranslation + shift));
 		}
 	}
