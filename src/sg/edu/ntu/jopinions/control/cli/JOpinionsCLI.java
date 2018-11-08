@@ -79,19 +79,15 @@ public class JOpinionsCLI {
 		generator.generateGraph(graphCC);
 		generator.generateGraph(graphPP);
 		
-		addloops(graphCC);
-		addloops(graphPP);
+		addSelfLoops(graphCC);
+		addSelfLoops(graphPP);
 
 		boolean flip = Boolean.parseBoolean(Utils.getParameter(args, "-flip", "true", "false"));
 		if (flip) {
 			graphCC = new EdgeReversedGraph<PointND, DefaultEdge>(graphCC);
 			graphPP = new EdgeReversedGraph<PointND, DefaultEdge>(graphPP);
 		}
-		
-		
-		//Both graphs should be ready before passing this line
-		//======================================================
-		
+
 		cacheVerticesDegrees(graphCC);
 		cacheVerticesDegrees(graphPP);
 
@@ -106,28 +102,56 @@ public class JOpinionsCLI {
 
 		OpinionsMatrix x = createOpinionsMatrix(numCouples, numDimensions, graphCC, graphPP);
 		//TODO remove the local variable seed later
-		long seed = Long.valueOf(Utils.getParameter(args, "-seed", "0", ""+System.currentTimeMillis()));// "123456789"
+		long seed = Long.valueOf(Utils.getParameter(args, "-seed", "0", ""+System.currentTimeMillis()));
 		x.randomize(seed);
-
-		boolean ensureAllMovable = Boolean.valueOf(Utils.getParameter(args, "-ensureMovable", "true", "false"));
-		if (ensureAllMovable) {
-			ensureAtLeastOneIncomingEdge(graphCC);
-			ensureAtLeastOneIncomingEdge(graphPP);
-		}
 		
+		
+		//=========== Manage stubborn start======================================
+		String[] manageStubborn = Utils.getParameters(args, Constants.PARAM_MANAGE_STUBBORN, (String[])null, new String[]{Constants.NONE});
+		if (manageStubborn == null) {
+			throw new IllegalArgumentException("Must give a value for " + Constants.PARAM_MANAGE_STUBBORN + " parameter.");
+		} else {
+			String command = manageStubborn[0];//at least "none"
+			if (command.equals(Constants.MOBILIZE)) {
+				float rho = Defaults.RHO;
+				try { rho = Float.valueOf(manageStubborn[1]); } catch (Exception e) {}
+				mobilize(graphCC, rho);
+				mobilize(graphPP, rho);
+			} else {
+				float nu = Defaults.NU;
+				try { nu = Float.valueOf(manageStubborn[1]); } catch (Exception e) {}
+				if (command.equals(Constants.POLARIZE_SINGLE)) {
+					polarizeSingle(graphCC, nu);
+				} else if (command.equals(Constants.POLARIZE_COUPLE)) {
+					polarizeCouple(graphCC, graphPP, nu);
+				}
+			}
+		}
+		//=========== Manage stubborn end======================================
+
+		//Both graphs should be ready before passing this line
+		//======================================================
+
 		simulation.setX(x);
 		
 		long stepDelayMillis = (long)(1000 * Float.valueOf(Utils.getParameter(args, "-dt", "", "" + Defaults.DEFAULT_STEP_DELAY_SECS)));
 		simulation.setStepDelayMillis(stepDelayMillis);
 		simulation.start();
 	}
-	private static void ensureAtLeastOneIncomingEdge(Graph<PointND, DefaultEdge> graph) {
-		Iterator<PointND> iterator = graph.vertexSet().stream()
-				.filter(vertex -> graph.inDegreeOf(vertex) == 1) //only from itself
-				.iterator();
-		if ( ! iterator.hasNext()) {
-			System.out.println("nothing to optimize in " + graph);
+	private static void addSelfLoops(Graph<PointND, DefaultEdge> graph) {
+		graph.vertexSet().stream().forEach(vertix -> graph.addEdge(vertix, vertix));
 	}
+	
+	private static void polarizeSingle(Graph<PointND, DefaultEdge> graphCC, float polarize) {
+		//TODO
+	}
+
+	private static void polarizeCouple(Graph<PointND, DefaultEdge> graphCC, Graph<PointND, DefaultEdge> graphPP, float polarize) {
+		//TODO
+	}
+	
+	private static void mobilize(Graph<PointND, DefaultEdge> graph, float mob) {
+		Iterator<PointND> iterator = findFixedVertices(graph);
 node:
 		while (iterator.hasNext()) {
 			PointND pointND = (PointND) iterator.next();
@@ -160,11 +184,23 @@ edge:
 				edgeSource.setOutDegree(graph.outDegreeOf(edgeSource));
 				edgeTarget.setInDegree (graph.inDegreeOf (edgeTarget));
 				edgeTarget.setOutDegree(graph.outDegreeOf(edgeTarget));
-				System.out.println("optimized " + pointND);
-				//TODO Anything else?
+				if (verbose) {
+					System.out.println("Mobilized " + pointND);
+				}
 				continue node;
 			}
 		}
+	}
+	private static Iterator<PointND> findFixedVertices(Graph<PointND, DefaultEdge> graph) {
+		Iterator<PointND> iterator = graph.vertexSet().stream()
+				.filter(vertex -> graph.inDegreeOf(vertex) == 1) //only from itself
+				.iterator();
+		if (verbose) {
+			if (!iterator.hasNext()) {
+				System.err.println("nothing to optimize in " + graph);
+			}
+		}
+		return iterator;
 	}
 	private static void cacheVerticesDegrees(Graph<PointND, DefaultEdge> graphCC) {
 		Iterator<PointND> iterator = graphCC.vertexSet().iterator();
@@ -288,7 +324,7 @@ edge:
 		int dimensions = 3;
 		int numCouples=Integer.parseInt(Utils.getParameter(args, "-numCouples", "", "10"));
 		Simulation simulation = new Simulation();
-		boolean verbose = Boolean.valueOf(Utils.getParameter(args, "-v", "true", ""+simulation.isVerbose()));
+		verbose = Boolean.valueOf(Utils.getParameter(args, "-v", "true", ""+simulation.isVerbose()));
 		simulation.setVerbose(verbose);
 
 		Graph<PointND, DefaultEdge> gCC = new DefaultDirectedGraph<>(DefaultEdge.class);
