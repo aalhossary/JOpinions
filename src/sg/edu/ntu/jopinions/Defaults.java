@@ -12,7 +12,7 @@ import java.awt.Color;
 public interface Defaults extends Constants {
 
 	int DEFAULT_NUM_DIMENSIONS = 3;
-	long DEFAULT_MAX_STEPS = 10_000_000;
+	long DEFAULT_MAX_STEPS = 5_000;
 	float DEFAULT_STEP_DELAY_SECS = 0;//1_000;
 	
 	float DEFAULT_PHI = 0.75f;
