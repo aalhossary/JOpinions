@@ -76,7 +76,14 @@ public class PointND {
 	public static float[] minusRawData(float[] p1, float[] p2) {
 		float[] ret = new float[p1.length];
 		for (int i = 0; i < ret.length; i++) {
-			ret[i]= p1[i]- p2[i];
+			ret[i]= p1[i] - p2[i];
+		}
+		return ret;
+	}
+	public static float[] plusRawData(float[] p1, float[] p2) {
+		float[] ret = new float[p1.length];
+		for (int i = 0; i < ret.length; i++) {
+			ret[i]= p1[i] + p2[i];
 		}
 		return ret;
 	}
@@ -119,8 +126,6 @@ public class PointND {
 	}
 
 	public static class PointNDSupplier implements Supplier<PointND>{
-		public static final String PULLOX = "P";
-		public static final String CASTOR = "C";
 //		private int numDim;
 		private int next=0;
 		String name;

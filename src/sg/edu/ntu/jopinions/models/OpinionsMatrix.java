@@ -3,8 +3,8 @@ package sg.edu.ntu.jopinions.models;
 import java.io.PrintStream;
 import java.util.Random;
 
+import sg.edu.ntu.jopinions.Constants;
 import sg.edu.ntu.jopinions.Defaults;
-import sg.edu.ntu.jopinions.models.PointND.PointNDSupplier;
 
 /**This matrix is referenced in the text as x or x[t].<br>
  * The data is stored in one row in the form of (c<sub>1</sub>c<sub>2</sub> · · · c<sub>n</sub>p<sub>1</sub>p<sub>2</sub> · · · p<sub>n</sub>).
@@ -44,8 +44,8 @@ public class OpinionsMatrix {
 			PointND[] points = new PointND[2 * n];
 			//share the same data variables between the 2D array and individual points (vertices)
 			for (int i = 0; i < n; i++) {
-				points[i] 		= new PointND(PointNDSupplier.CASTOR, new float[d], i);
-				points[i + n]	= new PointND(PointNDSupplier.PULLOX, new float[d], i);
+				points[i] 		= new PointND(Constants.CASTOR, new float[d], i);
+				points[i + n]	= new PointND(Constants.PULLOX, new float[d], i);
 			}
 			set(points);
 		}
@@ -145,8 +145,7 @@ public class OpinionsMatrix {
 			data[i] = points[i].x;
 		}
 	}
-	public void randomize(long seed) {
-		Random random = new Random(seed);
+	public void randomize(Random random) {
 		for (PointND pointND : points) {
 			float[] x = pointND.x;
 			for (int i = 0; i < x.length; i++) {

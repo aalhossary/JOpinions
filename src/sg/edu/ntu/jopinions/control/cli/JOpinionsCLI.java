@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
-import java.util.stream.Stream;
 
 import org.jgrapht.Graph;
 import org.jgrapht.Graphs;
@@ -35,6 +35,7 @@ import sg.edu.ntu.jopinions.models.Utils;
 
 public class JOpinionsCLI {
 	
+	private static Random randomGenerator;
 	private static JOpinionsCLI instance=null;
 	private static boolean verbose;
 	
@@ -57,6 +58,8 @@ public class JOpinionsCLI {
 			printUsage();
 			return;
 		}
+		long seed = Long.valueOf(Utils.getParameter(args, "-seed", "0", ""+System.currentTimeMillis()));
+		randomGenerator = new Random(seed);
 		boolean demo = Boolean.valueOf(Utils.getParameter(args, "-demo", "true", "false"));
 		if(demo) {
 			cli.demo(args);
@@ -69,10 +72,10 @@ public class JOpinionsCLI {
 		int numDimensions = Integer.valueOf(Utils.getParameter(args, "-dimensions", "", String.valueOf(Defaults.DEFAULT_NUM_DIMENSIONS)));
 		
 		PointND.setNumDimensions(numDimensions);
-		Graph<PointND,DefaultEdge> graphCC = new DefaultDirectedGraph<>(new PointNDSupplier(numDimensions, PointNDSupplier.CASTOR),SupplierUtil.createDefaultEdgeSupplier(),false);
+		Graph<PointND,DefaultEdge> graphCC = new DefaultDirectedGraph<>(new PointNDSupplier(numDimensions, Constants.CASTOR),SupplierUtil.createDefaultEdgeSupplier(),false);
 //		Graph<PointND,DefaultEdge> graphCP = new DefaultDirectedGraph<>(new PointNDSupplier(numDimensions, PointNDSupplier.PULLOX),SupplierUtil.createDefaultEdgeSupplier(),false);
 //		Graph<PointND,DefaultEdge> graphPC = new DefaultDirectedGraph<>(new PointNDSupplier(numDimensions, PointNDSupplier.PULLOX),SupplierUtil.createDefaultEdgeSupplier(),false);
-		Graph<PointND,DefaultEdge> graphPP = new DefaultDirectedGraph<>(new PointNDSupplier(numDimensions, PointNDSupplier.PULLOX),SupplierUtil.createDefaultEdgeSupplier(),false);
+		Graph<PointND,DefaultEdge> graphPP = new DefaultDirectedGraph<>(new PointNDSupplier(numDimensions, Constants.PULLOX),SupplierUtil.createDefaultEdgeSupplier(),false);
 
 		//add Topology Random generators
 		GraphGenerator<PointND, DefaultEdge, PointND> generator = createTopologyGenerator(args, simulation, numCouples);
@@ -101,36 +104,38 @@ public class JOpinionsCLI {
 		simulation.setD(model);
 
 		OpinionsMatrix x = createOpinionsMatrix(numCouples, numDimensions, graphCC, graphPP);
-		//TODO remove the local variable seed later
-		long seed = Long.valueOf(Utils.getParameter(args, "-seed", "0", ""+System.currentTimeMillis()));
-		x.randomize(seed);
+		x.randomize(randomGenerator);
 		
 		
 		//=========== Manage stubborn start======================================
 		String[] manageStubborn = Utils.getParameters(args, Constants.PARAM_MANAGE_STUBBORN, (String[])null, new String[]{Constants.NONE});
 		if (manageStubborn == null) {
-			throw new IllegalArgumentException("Must give a value for " + Constants.PARAM_MANAGE_STUBBORN + " parameter.");
+			throw new IllegalArgumentException("If parameter " + Constants.PARAM_MANAGE_STUBBORN + " is introduced, it must be given a value.");
 		} else {
-			String command = manageStubborn[0];//at least "none"
+			String command = manageStubborn[0];//at least {"none"}
 			if (command.equals(Constants.MOBILIZE)) {
 				float rho = Defaults.RHO;
 				try { rho = Float.valueOf(manageStubborn[1]); } catch (Exception e) {}
-				mobilize(graphCC, rho);
-				mobilize(graphPP, rho);
-			} else {
+				mobilize(graphCC, rho, randomGenerator);
+				mobilize(graphPP, rho, randomGenerator);
+			} else if (command.equals(Constants.POLARIZE_SINGLE)) {
 				float nu = Defaults.NU;
 				try { nu = Float.valueOf(manageStubborn[1]); } catch (Exception e) {}
-				if (command.equals(Constants.POLARIZE_SINGLE)) {
-					polarizeSingle(graphCC, nu);
-				} else if (command.equals(Constants.POLARIZE_COUPLE)) {
-					polarizeCouple(graphCC, graphPP, nu);
-				}
+				polarizeSingle(graphCC, nu);
+				polarizeSingle(graphPP, nu);
+			} else if (command.equals(Constants.POLARIZE_COUPLE)) {
+				float nu = Defaults.NU;
+				try { nu = Float.valueOf(manageStubborn[1]); } catch (Exception e) {}
+				polarizeCouple(graphCC, x, nu, randomGenerator);
+				polarizeCouple(graphPP, x, nu, randomGenerator);
+			} else if (command.equals("none")) {
+				//do nothing
+			} else {
+				throw new IllegalArgumentException("Unknown stubborn management command " + command);
 			}
 		}
 		//=========== Manage stubborn end======================================
 
-		//Both graphs should be ready before passing this line
-		//======================================================
 
 		simulation.setX(x);
 		
@@ -142,65 +147,145 @@ public class JOpinionsCLI {
 		graph.vertexSet().stream().forEach(vertix -> graph.addEdge(vertix, vertix));
 	}
 	
-	private static void polarizeSingle(Graph<PointND, DefaultEdge> graphCC, float polarize) {
-		//TODO
+	private static void polarizeSingle(Graph<PointND, DefaultEdge> graph, float nu) {
+		Iterator<PointND> subjectPointsIterator = graph.vertexSet().stream()
+				.filter(vertex -> vertex.getInDegree() == 1).iterator();
+		while (subjectPointsIterator.hasNext()) {
+			PointND point = (PointND) subjectPointsIterator.next();
+//			System.out.println(point);
+			moveToPole(point, point.getName().equals(Constants.CASTOR), nu);
+//			System.out.println(point);
+			point.normalize();
+//			System.out.println(point); System.out.println();
+		}
 	}
 
-	private static void polarizeCouple(Graph<PointND, DefaultEdge> graphCC, Graph<PointND, DefaultEdge> graphPP, float polarize) {
-		//TODO
+	private static void polarizeCouple(Graph<PointND, DefaultEdge> graph, OpinionsMatrix x, float nu, Random random) {
+		Iterator<PointND> subjectPointsIterator = graph.vertexSet().stream()
+				.filter(vertex -> vertex.getInDegree() == 1).iterator();
+		int n = x.getN();
+		while (subjectPointsIterator.hasNext()) {
+			PointND point = (PointND) subjectPointsIterator.next();
+			int id = point.getId();
+			boolean targetPool = random.nextBoolean();
+			final PointND point1 = x.points[id];
+			final PointND point2 = x.points[id+n];
+			moveToPole(point1, targetPool, nu);
+			moveToPole(point2, targetPool, nu);
+			point1.normalize();
+			point2.normalize();
+			if (verbose) {
+				System.out.println(point1);
+				System.out.println(point2);
+				System.out.println();
+			}
+		}
+	}
+
+	/**
+	 * @param point the point to polarize
+	 * @param firstPool if <code>true</code>, go to Castors pool, otherwise Puloxes pool
+	 * @param nu number [0, 1] where 1 indicates that the two triangular pools touch each other
+	 */
+	private static void moveToPole(PointND point, boolean firstPool, float nu) {
+		nu = nu / 2;//actual nu is until half of the area
+		point.scale(nu);
+		PointND ref;
+		if (firstPool) {
+			ref = new PointND(Defaults.CASTOR+"Ref", new float[] {1, 0, 0}, 0);
+		} else {
+			ref = new PointND(Defaults.PULLOX+"Ref", new float[] {0, 0.5f, 0.5f}, 0);
+		}
+		float[] miniRef = ref.copyX_i();
+		Utils.scaleLine(miniRef, nu);
+		float[] translation = PointND.minusRawData(ref.getX_i(),miniRef);
+		point.setX(PointND.plusRawData(point.getX_i(),translation));
 	}
 	
-	private static void mobilize(Graph<PointND, DefaultEdge> graph, float mob) {
-		Iterator<PointND> iterator = findFixedVertices(graph);
-node:
-		while (iterator.hasNext()) {
-			PointND pointND = (PointND) iterator.next();
-			//candidates should have at least one remaining target (other than itself)
-			Stream<DefaultEdge> sortedCandidateEdges = graph.outgoingEdgesOf(pointND).stream()
-					.filter(edge -> graph.outDegreeOf(graph.getEdgeTarget(edge)) > 2)
-					.sorted(new Comparator<DefaultEdge>() {
-				@Override
-				public int compare(DefaultEdge o1, DefaultEdge o2) {
-					return graph.outDegreeOf(graph.getEdgeTarget(o1)) - graph.outDegreeOf(graph.getEdgeTarget(o2));
+	private static void mobilize(Graph<PointND, DefaultEdge> graph, float rho, Random randomGenerator) {
+		final Comparator<DefaultEdge> inDegreeEdgeTargetComparator = new InDegreeEdgeTargetComparator(graph);
+		final Comparator<DefaultEdge> outDegreeEdgeSourceComparator = new OutDegreeEdgeSourceComparator(graph);
+		final Comparator<PointND> inDegreeVertixComparator = new InDegreeVertixComparator();
+
+		int targetFixed = (int) (rho * graph.vertexSet().size());
+		final int fixedPointsCount = (int) graph.vertexSet().stream()
+				.filter(vertex -> graph.inDegreeOf(vertex) == 1).count(); //only from itself
+
+		if (targetFixed < fixedPointsCount) {// we need to decrease fixed points (mobilize)
+			Iterator<PointND> subjectPointsIterator = graph.vertexSet().stream()
+					.sorted(inDegreeVertixComparator.reversed())
+					.filter(point -> point.getInDegree() == 1)
+					.iterator();
+			int targetNewMobile = fixedPointsCount - targetFixed;
+			int newMobile = 0;
+			node: while (newMobile < targetNewMobile && subjectPointsIterator.hasNext()) {
+				PointND pointND = subjectPointsIterator.next();
+				// candidates should have at least one remaining target (other than itself)
+				Iterator<DefaultEdge> sortedCandidateEdgesIterator = graph.outgoingEdgesOf(pointND).stream()
+						.filter(edge -> graph.outDegreeOf(graph.getEdgeTarget(edge)) > 2)
+						.sorted(inDegreeEdgeTargetComparator.reversed())
+						.iterator();
+
+				edge: while (sortedCandidateEdgesIterator.hasNext()) {
+					DefaultEdge edge = sortedCandidateEdgesIterator.next();
+					PointND edgeSource = pointND;
+					PointND edgeTarget = graph.getEdgeTarget(edge);
+					// ignore loop edges
+					// repeat check to avoid shrinking a node already shrunk in a previous operation
+					if (edgeSource == edgeTarget || edgeTarget.getInDegree() <= 1) {
+						continue edge;
+					}
+					graph.removeEdge(edge);
+					graph.addEdge(edgeTarget, edgeSource);
+					edgeSource.setInDegree(graph.inDegreeOf(edgeSource));
+					edgeSource.setOutDegree(graph.outDegreeOf(edgeSource));
+					edgeTarget.setInDegree(graph.inDegreeOf(edgeTarget));
+					edgeTarget.setOutDegree(graph.outDegreeOf(edgeTarget));
+					newMobile++;
+					if (verbose) {
+						System.out.println("Mobilized " + pointND);
+					}
+					continue node;
 				}
-			}.reversed());
-//			sortedCandidateEdges.forEachOrdered(edge -> System.out.println(edge.toString() + graph.outDegreeOf(graph.getEdgeTarget(edge))));
-			
-			Iterator<DefaultEdge> sortedCandidateEdgesIterator = sortedCandidateEdges.iterator();
-edge:
-			while (sortedCandidateEdgesIterator.hasNext()) {
-				DefaultEdge edge = (DefaultEdge) sortedCandidateEdgesIterator.next();
-				PointND edgeSource = pointND;
-				PointND edgeTarget = graph.getEdgeTarget(edge);
-				//ignore loop edges
-				//repeat check to avoid shrinking a node already shrunk in a previous operation
-				if (edgeSource == edgeTarget || edgeTarget.getInDegree() <= 1) {
-					continue edge;
+			}
+		} else {// we need to add more fixed points (remove incoming edges)
+			Iterator<PointND> subjectPointsIterator = graph.vertexSet().stream()
+					.sorted(inDegreeVertixComparator)
+					.filter(point -> point.getInDegree() > 1) //affected by others
+					.iterator();
+			int targetNewFixed = targetFixed - fixedPointsCount;
+			int newFixed = 0;
+
+			node: while (newFixed < targetNewFixed && subjectPointsIterator.hasNext()) {
+				PointND pointND = subjectPointsIterator.next();
+				// candidates should have at least one remaining target (other than itself)
+				Iterator<DefaultEdge> sortedCandidateEdgesIterator = graph.incomingEdgesOf(pointND).stream()
+						.filter(edge -> graph.outDegreeOf(graph.getEdgeTarget(edge)) > 2)
+						.sorted(outDegreeEdgeSourceComparator).iterator();
+				
+				edge: while (sortedCandidateEdgesIterator.hasNext()) {
+					DefaultEdge edge = sortedCandidateEdgesIterator.next();
+					PointND edgeSource = graph.getEdgeSource(edge);
+					PointND edgeTarget = pointND;
+					// ignore loop edges
+					// repeat check to avoid shrinking a node already shrunk in a previous operation
+					if (edgeSource == edgeTarget || edgeSource.getOutDegree() <= 1) {
+						continue edge;
+					}
+					graph.removeEdge(edge);
+					graph.addEdge(edgeTarget, edgeSource);
+					edgeSource.setInDegree(graph.inDegreeOf(edgeSource));
+					edgeSource.setOutDegree(graph.outDegreeOf(edgeSource));
+					edgeTarget.setInDegree(graph.inDegreeOf(edgeTarget));
+					edgeTarget.setOutDegree(graph.outDegreeOf(edgeTarget));
+					newFixed++;
+					if (verbose) {
+						System.out.println("Fixed " + pointND);
+					}
+					continue node;
 				}
-				//TODO test against random value
-				graph.removeEdge(edge);
-				graph.addEdge(edgeTarget, edgeSource);
-				edgeSource.setInDegree (graph.inDegreeOf (edgeSource));
-				edgeSource.setOutDegree(graph.outDegreeOf(edgeSource));
-				edgeTarget.setInDegree (graph.inDegreeOf (edgeTarget));
-				edgeTarget.setOutDegree(graph.outDegreeOf(edgeTarget));
-				if (verbose) {
-					System.out.println("Mobilized " + pointND);
-				}
-				continue node;
 			}
 		}
-	}
-	private static Iterator<PointND> findFixedVertices(Graph<PointND, DefaultEdge> graph) {
-		Iterator<PointND> iterator = graph.vertexSet().stream()
-				.filter(vertex -> graph.inDegreeOf(vertex) == 1) //only from itself
-				.iterator();
-		if (verbose) {
-			if (!iterator.hasNext()) {
-				System.err.println("nothing to optimize in " + graph);
-			}
-		}
-		return iterator;
 	}
 	private static void cacheVerticesDegrees(Graph<PointND, DefaultEdge> graphCC) {
 		Iterator<PointND> iterator = graphCC.vertexSet().iterator();
@@ -213,13 +298,12 @@ edge:
 	private static GraphGenerator<PointND, DefaultEdge, PointND> createTopologyGenerator(String[] args,
 			Simulation simulation, int numCouples) {
 		GraphGenerator<PointND, DefaultEdge, PointND> generator;
-		long seed = Long.valueOf(Utils.getParameter(args, "-seed", "0", ""+System.currentTimeMillis())); // "123456789"
 		String topology = Utils.getParameter(args, "-topology", null, Defaults.DEFAULT_TOPOLOGY);
 		switch (topology) {
 		case Constants.TOPOLOGY_BARABASI_ALBERT_GRAPH:
 			int m0	= Integer.valueOf(Utils.getParameter(args, "-m0", "10", "10"));
 			int m 	= Integer.valueOf(Utils.getParameter(args, "-m",  "", "2"));
-			generator = new BarabasiAlbertGraphGenerator<>(m0, m, numCouples, seed);
+			generator = new BarabasiAlbertGraphGenerator<>(m0, m, numCouples, randomGenerator);
 			break;
 
 		case Constants.TOPOLOGY_ERDOS_RENYI_GNP_RANDOM_GRAPH:
@@ -228,7 +312,8 @@ edge:
 //				numEdges = numCouples * 3;
 				numEdges = (numCouples / 20) * (numCouples-1);
 			}
-			generator = new GnmRandomGraphGenerator<>(numCouples, numEdges, seed);
+			//false, false are the default values for the last two parameters
+			generator = new GnmRandomGraphGenerator<>(numCouples, numEdges, randomGenerator, false, false);
 			break;
 
 		case Constants.TOPOLOGY_KLEINBERG_SMALL_WORLD_GRAPH:
@@ -237,13 +322,14 @@ edge:
 				throw new RuntimeException("numCouples must have a square root for Kleinberg model");
 			}
 			int propabilityDistripution = Integer.valueOf(Utils.getParameter(args, "-r", "", "2"));
-			generator = new KleinbergSmallWorldGraphGenerator<>((int)sqrt, 1, (int)Math.ceil(sqrt / 100.0), propabilityDistripution, seed);
+			generator = new KleinbergSmallWorldGraphGenerator<>((int)sqrt, 1, (int)Math.ceil(sqrt / 100.0), propabilityDistripution, randomGenerator);
 			break;
 
 		case Constants.TOPOLOGY_WATTS_STROGATZ_GRAPH:
 			double propabilityRewiring = Double.valueOf(Utils.getParameter(args, "-p", "", "0.5"));
 			int connectToKNN = Integer.valueOf(Utils.getParameter(args, "-k", "", "6")); //must be even
-			generator = new WattsStrogatzGraphGenerator<>(numCouples, connectToKNN, propabilityRewiring, seed);
+			//I don't know what is addInsteadOfRewire, but false is the default behavior
+			generator = new WattsStrogatzGraphGenerator<>(numCouples, connectToKNN, propabilityRewiring, false, randomGenerator);
 			break;
 
 		default:
@@ -347,7 +433,7 @@ edge:
 			//castors
 			data[i] = new float[] { ((0.5f * alpha) + (0.5f * (1-alpha))), (0+(0.5f * (1-alpha))), ((0.5f *alpha)+0)};
 			//pulloxes
-			data[data.length-i] = new float[] { ((0.5f *alpha)+0), ((0.5f * alpha) + (0.5f * (1-alpha))), (0+(0.5f * (1-alpha)))};
+			data[data.length - i] = new float[] { ((0.5f * alpha) + 0), ((0.5f * alpha) + (0.5f * (1 - alpha))), ( 0 + (0.5f * (1 - alpha)))};
 		}
 		
 		x.match(data);
@@ -372,4 +458,30 @@ edge:
 		simulation.start();
 	}
 
+	static class InDegreeEdgeTargetComparator implements Comparator<DefaultEdge> {
+		Graph<PointND, DefaultEdge> graph;
+		public InDegreeEdgeTargetComparator(Graph<PointND, DefaultEdge> graph) {
+			this.graph = graph;
+		}
+		@Override
+		public int compare(DefaultEdge o1, DefaultEdge o2) {
+			return graph.inDegreeOf(graph.getEdgeTarget(o1)) - graph.inDegreeOf(graph.getEdgeTarget(o2));
+		}
+	}
+	static class OutDegreeEdgeSourceComparator implements Comparator<DefaultEdge> {//new
+		Graph<PointND, DefaultEdge> graph;
+		public OutDegreeEdgeSourceComparator(Graph<PointND, DefaultEdge> graph) {
+			this.graph = graph;
+		}
+		@Override
+		public int compare(DefaultEdge o1, DefaultEdge o2) {
+			return graph.outDegreeOf(graph.getEdgeSource(o1)) - graph.outDegreeOf(graph.getEdgeSource(o2));
+		}
+	}
+	static class InDegreeVertixComparator implements Comparator<PointND> {
+		@Override
+		public int compare(PointND o1, PointND o2) {
+			return o1.getInDegree() - o2.getInDegree();
+		}
+	}
 }

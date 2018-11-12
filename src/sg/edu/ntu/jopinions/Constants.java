@@ -27,5 +27,7 @@ public interface Constants {
 	public String POLARIZE_SINGLE = "polarizeSingle";
 	public String POLARIZE_COUPLE = "polarizeCouple";
 	public String NONE = "none";
+	String PULLOX = "P";
+	String CASTOR = "C";
 
 }
