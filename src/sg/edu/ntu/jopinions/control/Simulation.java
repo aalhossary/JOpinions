@@ -28,6 +28,7 @@ public class Simulation implements Runnable {
 	private String topology;
 //	private int dimensions = Defaults.DEFAULT_NUM_DIMENSIONS;
 	private long stepDelayMillis;
+	private boolean showGUI = false;
 	
 	Thread runner= null;
 	long step = -1;
@@ -76,22 +77,25 @@ public class Simulation implements Runnable {
 			printXAndD(x, D, System.out, System.out);
 		}
 		
-		//TODO fix the temp JFrame
-		JFrame frame = new JFrame("JOpinions Simulation ["+topology+", "+modelNameString+"]");
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		GraphPanel<PointND, DefaultEdge> panel = new GraphPanel<>();
-		panel.setGraphs(graphs);
-		frame.setContentPane(panel);
-		frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
-		frame.setVisible(true);
-		
-		try {
-			Thread.sleep(stepDelayMillis);
-		} catch (InterruptedException e1) {
-			e1.printStackTrace();
+		GraphPanel<PointND, DefaultEdge> panel = null;
+		long timeBeforeStep, target=0;
+		if (showGUI) {
+			//TODO Replace the temp JFrame with a GUIManager
+			JFrame frame = new JFrame("JOpinions Simulation [" + topology + ", " + modelNameString + "]");
+			frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+			panel = new GraphPanel<>();
+			panel.setGraphs(graphs);
+			frame.setContentPane(panel);
+			frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+			frame.setVisible(true);
+			try {
+				Thread.sleep(stepDelayMillis);
+			} catch (InterruptedException e1) {
+				e1.printStackTrace();
+			}
+			timeBeforeStep = System.currentTimeMillis(); 
+			target = timeBeforeStep + stepDelayMillis;
 		}
-		long timeBeforeStep= System.currentTimeMillis(); 
-		long target = timeBeforeStep + stepDelayMillis;
 
 		try {
 			while (++step <= Defaults.DEFAULT_MAX_STEPS) {
@@ -117,24 +121,24 @@ public class Simulation implements Runnable {
 				//==============simulation step proper ends here ================
 				System.out.format("Step = %d, Total Diff = %8.5E, Converged = %b\n", step, totalAbsDist, converged);
 
-				//Show updates on GUI
-				panel.repaint();
-
 				//output opinionsMatrix and EffectMatrix
 				if (verbose ) {
 					printXAndD(x, D, System.out, System.out);
 				}
 
-				//delay
-				try {
-					long now = System.currentTimeMillis();
-					if(now < target) {
-						Thread.sleep(target - now);
+				if (showGUI) {
+					//Show updates on GUI
+					panel.repaint();
+					//delay
+					try {
+						long now = System.currentTimeMillis();
+						if (now < target) {
+							Thread.sleep(target - now);
+						}
+					} catch (InterruptedException e) {
+						e.printStackTrace();
 					}
-				} catch (InterruptedException e) {
-					e.printStackTrace();
 				}
-
 				if (converged) {
 					break;
 				}
@@ -147,8 +151,9 @@ public class Simulation implements Runnable {
 			System.err.println(e.getMessage());
 		}
 		
-		panel.finishedSimulation();
-
+		if (showGUI) {
+			panel.finishedSimulation();
+		}
 		if (converged) {
 			System.out.format("stopped because system converged after %d steps", step);
 		} else if (nan){
@@ -257,5 +262,7 @@ public class Simulation implements Runnable {
 		this.stepDelayMillis = stepDelayMillis;
 	}
 
-	
+	public void setShowGUI(boolean showGUI) {
+		this.showGUI = showGUI;
+	}
 }

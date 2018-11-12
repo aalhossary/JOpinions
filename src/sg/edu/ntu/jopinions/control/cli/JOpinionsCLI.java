@@ -68,6 +68,8 @@ public class JOpinionsCLI {
 		Simulation simulation = new Simulation();
 		verbose = Boolean.valueOf(Utils.getParameter(args, "-v", "true", "false"));
 		simulation.setVerbose(verbose);
+		boolean showGUI = Boolean.valueOf(Utils.getParameter(args, "-showGUI", "true", "false"));
+		simulation.setShowGUI(showGUI);
 		int numCouples = Integer.valueOf(Utils.getParameter(args, "-numCouples", "-1", "1000"));
 		int numDimensions = Integer.valueOf(Utils.getParameter(args, "-dimensions", "", String.valueOf(Defaults.DEFAULT_NUM_DIMENSIONS)));
 		
