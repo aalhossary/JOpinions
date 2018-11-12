@@ -84,9 +84,15 @@ public class Simulation implements Runnable {
 		frame.setContentPane(panel);
 		frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
 		frame.setVisible(true);
-
+		
+		try {
+			Thread.sleep(stepDelayMillis);
+		} catch (InterruptedException e1) {
+			e1.printStackTrace();
+		}
 		long timeBeforeStep= System.currentTimeMillis(); 
 		long target = timeBeforeStep + stepDelayMillis;
+
 		try {
 			while (++step <= Defaults.DEFAULT_MAX_STEPS) {
 				//now I have transformation (effects) matrix and x (opinions) matrix
@@ -96,7 +102,6 @@ public class Simulation implements Runnable {
 				float[][] tempX = x.multiply(D);
 
 				//calculate the total system update (total absolute distance)
-				//TODO is it the update of X only, or X and D?
 				float totalAbsDist = x.calculateTotalDifference(tempX);
 				converged = totalAbsDist < (oneOverNSquare / step);
 

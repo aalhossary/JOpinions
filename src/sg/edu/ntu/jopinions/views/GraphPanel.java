@@ -168,6 +168,7 @@ public class GraphPanel<V, E> extends JPanel implements ComponentListener, Mouse
 		//0 and 1.0 are reserved frame and maxRange
 		this.xRatio = (getWidth() - 0) / 1.0f;
 		this.yRatio = (getHeight()- 0) / 1.0f;
+		repaint();
 	}
 	@Override
 	public void componentMoved(ComponentEvent e) {}
