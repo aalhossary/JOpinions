@@ -87,14 +87,14 @@ public class JOpinionsCLI {
 		addSelfLoops(graphCC);
 		addSelfLoops(graphPP);
 
+		cacheVerticesDegrees(graphCC);
+		cacheVerticesDegrees(graphPP);
+		
 		boolean flip = Boolean.parseBoolean(Utils.getParameter(args, "-flip", "true", "false"));
 		if (flip) {
 			graphCC = new EdgeReversedGraph<PointND, DefaultEdge>(graphCC);
 			graphPP = new EdgeReversedGraph<PointND, DefaultEdge>(graphPP);
 		}
-
-		cacheVerticesDegrees(graphCC);
-		cacheVerticesDegrees(graphPP);
 
 		@SuppressWarnings("unchecked")
 		Graph<PointND, DefaultEdge>[] graphs = (Graph<PointND, DefaultEdge>[]) new Graph[]{graphCC, null, null,graphPP};
@@ -102,19 +102,19 @@ public class JOpinionsCLI {
 		
 		//get model from parameters
 		EffectMatrix model = createDynamicsModel(args, simulation, numCouples);
-		
+
 		simulation.setD(model);
 
 		OpinionsMatrix x = createOpinionsMatrix(numCouples, numDimensions, graphCC, graphPP);
 		x.randomize(randomGenerator);
-		
+		x.normalize();
 		
 		//=========== Manage stubborn start======================================
 		String[] manageStubborn = Utils.getParameters(args, Constants.PARAM_MANAGE_STUBBORN, (String[])null, new String[]{Constants.NONE});
 		if (manageStubborn == null) {
 			throw new IllegalArgumentException("If parameter " + Constants.PARAM_MANAGE_STUBBORN + " is introduced, it must be given a value.");
 		} else {
-			String command = manageStubborn[0];//at least {"none"}
+			String command = manageStubborn[0];//there is at least {"none"}
 			if (command.equals(Constants.MOBILIZE)) {
 				float rho = Defaults.RHO;
 				try { rho = Float.valueOf(manageStubborn[1]); } catch (Exception e) {}
@@ -130,7 +130,7 @@ public class JOpinionsCLI {
 				try { nu = Float.valueOf(manageStubborn[1]); } catch (Exception e) {}
 				polarizeCouple(graphCC, x, nu, randomGenerator);
 				polarizeCouple(graphPP, x, nu, randomGenerator);
-			} else if (command.equals("none")) {
+			} else if (command.equals(Constants.NONE)) {
 				//do nothing
 			} else {
 				throw new IllegalArgumentException("Unknown stubborn management command " + command);
