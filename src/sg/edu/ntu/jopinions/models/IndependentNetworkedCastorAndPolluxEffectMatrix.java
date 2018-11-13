@@ -3,10 +3,13 @@
  */
 package sg.edu.ntu.jopinions.models;
 
+import java.util.Set;
+
 import org.jgrapht.Graph;
 import org.jgrapht.graph.DefaultEdge;
 
 import sg.edu.ntu.jopinions.Constants;
+import sg.edu.ntu.jopinions.Defaults;
 
 /**
  * @author Amr
@@ -27,38 +30,34 @@ public class IndependentNetworkedCastorAndPolluxEffectMatrix extends AbstractInd
 	 */
 	@Override
 	public void updateUsing(OpinionsMatrix x, Graph<PointND, DefaultEdge>[] graphs) {
-		int n = EffectMatrix.n;
+//		int n = EffectMatrix.n;
 		Graph<PointND, DefaultEdge> graphCC = graphs[0];
 		Graph<PointND, DefaultEdge> graphPP = graphs[3];
-		double nominator;
+		float nominator = 1, denominator;
+		final float onePlusEgo_Over_Epsilon = (1 + Defaults.DEFAULT_EGO) / Defaults.EPSILON/* + 0 */;
+		Set<DefaultEdge> edgeSet;
 		//calculate cc
-		for (int i = 0; i < n; i++) {
-			for (int j = 0; j < n; j++) {
-				PointND ci= x.points[i];
-				PointND cj= x.points[j];
-				//Nominator is 1 if there is edge
-				nominator = graphCC.containsEdge(ci, cj) ? 1 : 0;
-				if(nominator == 0) {
-					quadrantCC[j][i] = 0;
-				}else {
-					double denom= Constants.EPSILON + ci.getDist(cj);
-					quadrantCC[j][i] = (float) (nominator/denom); //TODO revise
-				}
+		edgeSet = graphCC.edgeSet();
+		for (DefaultEdge edge : edgeSet) {
+			PointND edgeSource = graphCC.getEdgeSource(edge);
+			PointND edgeTarget = graphCC.getEdgeTarget(edge);
+			if (edgeSource == edgeTarget) {
+				quadrantCC[edgeTarget.getId()][edgeSource.getId()] = onePlusEgo_Over_Epsilon;
+			} else {
+				denominator = Constants.EPSILON + edgeSource.getDist(edgeTarget);
+				quadrantCC[edgeTarget.getId()][edgeSource.getId()] = nominator/denominator;
 			}
 		}
 		//calculate pp
-		for (int i = 0; i < n; i++) {
-			for (int j = 0; j < n; j++) {
-				PointND pi= x.points[i+n];
-				PointND pj= x.points[j+n];
-				//Nominator is 1 if there is edge
-				nominator = graphPP.containsEdge(pi, pj) ? 1 : 0;
-				if(nominator == 0) {
-					quadrantPP[j][i] = 0;
-				}else {
-					double denom= Constants.EPSILON + pi.getDist(pj);
-					quadrantPP[j][i] = (float) (nominator/denom); //TODO revise
-				}
+		edgeSet = graphPP.edgeSet();
+		for (DefaultEdge edge : edgeSet) {
+			PointND edgeSource = graphPP.getEdgeSource(edge);
+			PointND edgeTarget = graphPP.getEdgeTarget(edge);
+			if (edgeSource == edgeTarget) {
+				quadrantPP[edgeTarget.getId()][edgeSource.getId()] = onePlusEgo_Over_Epsilon;
+			} else {
+				denominator = Constants.EPSILON + edgeSource.getDist(edgeTarget);
+				quadrantPP[edgeTarget.getId()][edgeSource.getId()] = nominator / denominator;
 			}
 		}
 	}

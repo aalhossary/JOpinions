@@ -32,6 +32,47 @@ public class CoupledNetworkedCastorAndPolluxPhiEffectMatrix extends AbstractCoup
 		this.phi = phi;
 	}
 	
+	@Override
+	public void normalize() {
+		int n = EffectMatrix.n;
+		float sum, scale;
+		float[] line1, line2;
+		float excludedPhi ;
+		for (int i = 0; i < n; i++) {
+			line1 = quadrantCC[i];
+			sum = Utils.getSum(line1);
+			line2 = quadrantPC[i];
+			sum += Utils.getSum(line2);
+			
+			excludedPhi = quadrantPC[i][i];
+			quadrantPC[i][i]=0;
+			scale = (1.0f - excludedPhi) / (sum - excludedPhi);
+
+			if (Float.isNaN(scale)) {
+				throw new NaNException("NAN detected while normalizing D matrix in column " + i);
+			}
+			Utils.scaleLine(line1, scale);
+			Utils.scaleLine(line2, scale);
+			quadrantPC[i][i] = excludedPhi;
+			
+			line1 = quadrantCP[i];
+			sum = Utils.getSum(line1);
+			line2 = quadrantPP[i];
+			sum += Utils.getSum(line2);
+
+//			phi = quadrantCP[i][i];
+			quadrantCP[i][i]=0;
+			scale = (1.0f - excludedPhi) / (sum - excludedPhi);
+			
+			if (Float.isNaN(scale)) {
+				throw new NaNException("NAN detected while normalizing D matrix in column " + (i+n));
+			}
+			Utils.scaleLine(line1, scale);
+			Utils.scaleLine(line2, scale);
+			quadrantCP[i][i] = excludedPhi;
+		}
+	}
+	
 	/* (non-Javadoc)
 	 * @see sg.edu.ntu.jopinions.models.EffectMatrix#updateUsing(sg.edu.ntu.jopinions.models.OpinionsMatrix, org.jgrapht.Graph[])
 	 */
@@ -43,7 +84,10 @@ public class CoupledNetworkedCastorAndPolluxPhiEffectMatrix extends AbstractCoup
 //		Graph<PointND, DefaultEdge> graphCP = graphs[2];
 		Graph<PointND, DefaultEdge> graphPP = graphs[3];
 		float phi = this.phi;
-		float nominator = 1 - phi, denominator;
+		float nominator, denominator;
+		final float oneMinusPhi = (1 - phi);
+		final float oneMinusPhi_Times_onePlusEgo = (1 - phi)*(1+Defaults.DEFAULT_EGO);
+
 		
 		//fill PC and CP
 		for (int i = 0; i < n; i++) {
@@ -60,8 +104,11 @@ public class CoupledNetworkedCastorAndPolluxPhiEffectMatrix extends AbstractCoup
 			PointND edgeTarget = graphCC.getEdgeTarget(edge);
 			float dist = edgeSource.getDist(edgeTarget);
 			denominator = Constants.EPSILON + dist;
+			final int targetId = edgeTarget.getId();
+			final int sourceId = edgeSource.getId();
+			nominator = (sourceId == targetId) ? oneMinusPhi_Times_onePlusEgo : oneMinusPhi;
 			//notice that the x dimension comes first in this implementation
-			quadrantCC[edgeTarget.getId()][edgeSource.getId()] = nominator / denominator;
+			quadrantCC[targetId][sourceId] = nominator / denominator;
 		}
 		//fill PP
 		Iterator<DefaultEdge> edgesPPIerator = graphPP.edgeSet().iterator();
@@ -70,9 +117,12 @@ public class CoupledNetworkedCastorAndPolluxPhiEffectMatrix extends AbstractCoup
 			PointND edgeSource = graphPP.getEdgeSource(edge);
 			PointND edgeTarget = graphPP.getEdgeTarget(edge);
 			float dist = edgeSource.getDist(edgeTarget);
+			final int targetId = edgeTarget.getId();
+			final int sourceId = edgeSource.getId();
+			nominator = (targetId == sourceId) ? oneMinusPhi_Times_onePlusEgo : oneMinusPhi;
 			denominator = Constants.EPSILON + dist;
 			//notice that the x dimension comes first in this implementation
-			quadrantPP[edgeTarget.getId()][edgeSource.getId()] = nominator / denominator;
+			quadrantPP[targetId][sourceId] = nominator / denominator;
 		}
 	}
 }

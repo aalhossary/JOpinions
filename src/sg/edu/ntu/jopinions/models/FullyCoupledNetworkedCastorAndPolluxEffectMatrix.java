@@ -44,6 +44,7 @@ public class FullyCoupledNetworkedCastorAndPolluxEffectMatrix extends AbstractCo
 		float oneMinusAlpha, oneMinusBeta = 1-beta;
 		float nominator, denominator;
 		PointND yC, yP;
+		final float oneMinusBeta_Times_OnePlusEgo = oneMinusBeta * (1 + Defaults.DEFAULT_EGO);
 		
 		PointND[] points = x.points;
 		/**just a temporary point to avoid repetitive object allocation. use with caution*/
@@ -54,7 +55,7 @@ public class FullyCoupledNetworkedCastorAndPolluxEffectMatrix extends AbstractCo
 					//CC and PP (myself)
 //					alpha = 1; yC = pointC, yP = pointP;
 //					float dist = 0;
-					nominator = oneMinusBeta;
+					nominator = oneMinusBeta_Times_OnePlusEgo;
 					denominator = Constants.EPSILON; // + 0
 					quadrantCC[i][i] = quadrantPP[i][i] = nominator / denominator;
 
@@ -83,7 +84,7 @@ public class FullyCoupledNetworkedCastorAndPolluxEffectMatrix extends AbstractCo
 						//the dot product is |v1| * |v2| * cos (theta)
 						float v1v2DotProduct = PointND.dotProductRawData(vectorV1, vectorV2);
 						if (v1v2DotProduct <= 0) {
-							//point Pj projection is before or on Pi.
+							//point Cj projection is before or on Pi.
 							alpha = 0; oneMinusAlpha = 1;
 							yC = pointPi;
 						} else if(v1v2DotProduct >= v1v1DotProduct){
@@ -93,7 +94,7 @@ public class FullyCoupledNetworkedCastorAndPolluxEffectMatrix extends AbstractCo
 							alpha = 1; oneMinusAlpha = 0;
 							yC = pointCi;
 						} else {
-							alpha = (float) Math.sqrt(v1v2DotProduct / v1v1DotProduct);
+							alpha = v1v2DotProduct / v1v1DotProduct;
 							oneMinusAlpha = 1 - alpha;
 							yC = new PointND("yCj", pointCi.copyX_i(), j).scale(alpha);
 							temp = new PointND("Temp", pointPi.copyX_i(), -1).scale(oneMinusAlpha);
@@ -119,19 +120,19 @@ public class FullyCoupledNetworkedCastorAndPolluxEffectMatrix extends AbstractCo
 						float v1v2DotProduct = PointND.dotProductRawData(vectorV1, vectorV2);
 						if (v1v2DotProduct <= 0) {
 							//point Pj projection is before or on Pi.
-							alpha = 0; oneMinusAlpha = 1;
+							alpha = 1; oneMinusAlpha = 0;
 							yP = pointPi;
 						} else if(v1v2DotProduct >= v1v1DotProduct){
 							//in the line above, notice that v1v1DotProduct actually equals vectorV1LenSqr |v1| * |v1| * cos(0)
 
 							//point Pj projection is on or after Ci.
-							alpha = 1; oneMinusAlpha = 0;
+							alpha = 0; oneMinusAlpha = 1;
 							yP = pointCi;
 						} else {
-							alpha = (float) Math.sqrt(v1v2DotProduct / v1v1DotProduct);
-							oneMinusAlpha = 1 - alpha;
-							yP = new PointND("yPj", pointCi.copyX_i(), j).scale(alpha);
-							temp = new PointND("Temp", pointPi.copyX_i(), -1).scale(oneMinusAlpha);
+							oneMinusAlpha = v1v2DotProduct / v1v1DotProduct;
+							alpha = 1 - oneMinusAlpha;
+							yP = new PointND("yPj", pointPi.copyX_i(), j).scale(alpha);
+							temp = new PointND("Temp", pointCi.copyX_i(), -1).scale(oneMinusAlpha);
 							yP.add(temp);
 						}
 						
