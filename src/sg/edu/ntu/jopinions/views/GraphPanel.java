@@ -81,23 +81,24 @@ public class GraphPanel<V, E> extends JPanel implements ComponentListener, Mouse
 					   (int)(xRatio * pulloxX[0]) + xTranslation, (int)(yRatio * pulloxX[1]) + yTranslation);
 		}
 		
-		//draw Pullox edges
-		g.setColor(Defaults.COLOR_PULLOX);
-		for (int i = 0; i < pulloxSourcesNoLoop.length; i++) {
-			float[] sourceCoord = pulloxSourcesNoLoop[i].getX_i();
-			float[] targetCoord = pulloxTargetsNoLoop[i].getX_i();
-			g.drawLine((int)(xRatio * sourceCoord[0]) + xTranslation, (int)(yRatio * sourceCoord[1]) + yTranslation, 
-					   (int)(xRatio * targetCoord[0]) + xTranslation, (int)(yRatio * targetCoord[1]) + yTranslation);
-		}
-		//draw Castor edges
-		g.setColor(Defaults.COLOR_CASTOR);
-		for (int i = 0; i < castorSourcesNoLoop.length; i++) {
-			float[] sourceCoord = castorSourcesNoLoop[i].getX_i();
-			float[] targetCoord = castorTargetsNoLoop[i].getX_i();
-			g.drawLine((int)(xRatio * sourceCoord[0]) + xTranslation, (int)(yRatio * sourceCoord[1]) + yTranslation, 
-					   (int)(xRatio * targetCoord[0]) + xTranslation, (int)(yRatio * targetCoord[1]) + yTranslation);
-		}
-		
+		if(!showNodeDetails) {
+			//draw Pullox edges
+			g.setColor(Defaults.COLOR_PULLOX);
+			for (int i = 0; i < pulloxSourcesNoLoop.length; i++) {
+				float[] sourceCoord = pulloxSourcesNoLoop[i].getX_i();
+				float[] targetCoord = pulloxTargetsNoLoop[i].getX_i();
+				g.drawLine((int)(xRatio * sourceCoord[0]) + xTranslation, (int)(yRatio * sourceCoord[1]) + yTranslation, 
+						(int)(xRatio * targetCoord[0]) + xTranslation, (int)(yRatio * targetCoord[1]) + yTranslation);
+			}
+			//draw Castor edges
+			g.setColor(Defaults.COLOR_CASTOR);
+			for (int i = 0; i < castorSourcesNoLoop.length; i++) {
+				float[] sourceCoord = castorSourcesNoLoop[i].getX_i();
+				float[] targetCoord = castorTargetsNoLoop[i].getX_i();
+				g.drawLine((int)(xRatio * sourceCoord[0]) + xTranslation, (int)(yRatio * sourceCoord[1]) + yTranslation, 
+						(int)(xRatio * targetCoord[0]) + xTranslation, (int)(yRatio * targetCoord[1]) + yTranslation);
+			}
+		}	
 		//draw Castor Vertices
 		g.setColor(Defaults.COLOR_CASTOR);
 		for (int i = 0; i < castorPointNDs.length; i++) {

@@ -185,6 +185,26 @@ public class JOpinionsCLI {
 		}
 	}
 
+//	/**
+//	 * @param point the point to polarize
+//	 * @param firstPool if <code>true</code>, go to Castors pool, otherwise Puloxes pool
+//	 * @param nu number [0, 1] where 1 indicates that the two triangular pools touch each other
+//	 */
+//	private static void moveToPole(PointND point, boolean firstPool, float nu) {
+//		nu = nu / 2;//actual nu is until half of the area
+//		point.scale(nu);
+//		PointND ref;
+//		if (firstPool) {
+//			ref = new PointND(Defaults.CASTOR+"Ref", new float[] {1, 0, 0}, 0);
+//		} else {
+//			ref = new PointND(Defaults.PULLOX+"Ref", new float[] {0, 0.5f, 0.5f}, 0);
+//		}
+//		float[] miniRef = ref.copyX_i();
+//		Utils.scaleLine(miniRef, nu);
+//		float[] translation = PointND.minusRawData(ref.getX_i(),miniRef);
+//		point.matchValues(PointND.plusRawData(point.getX_i(),translation));
+//		point.normalize();
+//	}
 	/**
 	 * @param point the point to polarize
 	 * @param firstPool if <code>true</code>, go to Castors pool, otherwise Puloxes pool
@@ -199,13 +219,11 @@ public class JOpinionsCLI {
 		} else {
 			ref = new PointND(Defaults.PULLOX+"Ref", new float[] {0, 0.5f, 0.5f}, 0);
 		}
-		float[] miniRef = ref.copyX_i();
-		Utils.scaleLine(miniRef, nu);
-		float[] translation = PointND.minusRawData(ref.getX_i(),miniRef);
-		point.setX(PointND.plusRawData(point.getX_i(),translation));
+		ref.scale(1.0f-nu);
+		point.add(ref);
 		point.normalize();
-	}
-	
+		
+	}	
 	private static void mobilize(Graph<PointND, DefaultEdge> graph, float rho, Random randomGenerator) {
 		final Comparator<DefaultEdge> inDegreeEdgeTargetComparator = new InDegreeEdgeTargetComparator(graph);
 		final Comparator<DefaultEdge> outDegreeEdgeSourceComparator = new OutDegreeEdgeSourceComparator(graph);
