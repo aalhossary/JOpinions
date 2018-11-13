@@ -128,8 +128,11 @@ public class JOpinionsCLI {
 			} else if (command.equals(Constants.POLARIZE_COUPLE)) {
 				float nu = Defaults.NU;
 				try { nu = Float.valueOf(manageStubborn[1]); } catch (Exception e) {}
+//				System.out.println(x.points[519]);
 				polarizeCouple(graphCC, x, nu, randomGenerator);
+//				System.out.println(x.points[519]);
 				polarizeCouple(graphPP, x, nu, randomGenerator);
+//				System.out.println(x.points[519]);
 			} else if (command.equals(Constants.NONE)) {
 				//do nothing
 			} else {
@@ -155,10 +158,10 @@ public class JOpinionsCLI {
 		while (subjectPointsIterator.hasNext()) {
 			PointND point = (PointND) subjectPointsIterator.next();
 //			System.out.println(point);
-			moveToPole(point, point.getName().equals(Constants.CASTOR), nu);
-//			System.out.println(point);
-			point.normalize();
-//			System.out.println(point); System.out.println();
+			moveToPole(point, Constants.CASTOR.equals(point.getName()), nu);
+			if (verbose) {
+				System.out.println(point);
+			}
 		}
 	}
 
@@ -174,8 +177,6 @@ public class JOpinionsCLI {
 			final PointND point2 = x.points[id+n];
 			moveToPole(point1, targetPool, nu);
 			moveToPole(point2, targetPool, nu);
-			point1.normalize();
-			point2.normalize();
 			if (verbose) {
 				System.out.println(point1);
 				System.out.println(point2);
@@ -202,6 +203,7 @@ public class JOpinionsCLI {
 		Utils.scaleLine(miniRef, nu);
 		float[] translation = PointND.minusRawData(ref.getX_i(),miniRef);
 		point.setX(PointND.plusRawData(point.getX_i(),translation));
+		point.normalize();
 	}
 	
 	private static void mobilize(Graph<PointND, DefaultEdge> graph, float rho, Random randomGenerator) {

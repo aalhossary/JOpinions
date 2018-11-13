@@ -4,6 +4,7 @@
 package sg.edu.ntu.jopinions.control;
 
 import java.io.PrintStream;
+import java.util.Arrays;
 
 import javax.swing.JFrame;
 
@@ -59,9 +60,6 @@ public class Simulation implements Runnable {
 	 */
 	@Override
 	public void run() {
-		OpinionsMatrix x = this.getX();
-		x.normalize();
-		EffectMatrix D = this.D;
 		Graph<PointND, DefaultEdge>[] graphs = this.graphs;
 
 		float oneOverNSquare;
@@ -70,8 +68,22 @@ public class Simulation implements Runnable {
 		step = 0;
 		oneOverNSquare= 1.0f / x.getD() / x.getD();
 		
+		OpinionsMatrix x = this.getX();
+		x.normalize();
+		EffectMatrix D = this.D;
+//		System.out.println(x.points[519]);
+//		float[][] line = D.getLine(519);
+//		System.out.println(Arrays.toString(line[0]));
+//		System.out.println(Arrays.toString(line[1]));
+//		System.out.println();
 		D.updateUsing(x, graphs);
+//		System.out.println(Arrays.toString(line[0]));
+//		System.out.println(Arrays.toString(line[1]));
+//		System.out.println();
 		D.normalize();
+//		System.out.println(Arrays.toString(line[0]));
+//		System.out.println(Arrays.toString(line[1]));
+//		System.out.println();
 
 		if (verbose ) {
 			printXAndD(x, D, System.out, System.out);
@@ -111,7 +123,9 @@ public class Simulation implements Runnable {
 
 				//x = tempX;
 				x.match(tempX);
+//				System.out.println(x.points[519] + "\t[unnormalized] after step"+ step);
 				x.normalize();
+//				System.out.println(x.points[519] + "\t[  normalized] after step"+ step);
 
 				//TODO save tempX if you want
 

@@ -56,12 +56,14 @@ public class CoupledNetworkedCastorAndPolluxBetaEffectMatrix extends AbstractCou
 		//We will iterate on graph edges better than on n^2
 
 		//fill CC
-		nominator = 1 - beta;
+		final float oneMinusBeta = 1 - beta;
+		final float oneMinusBetaTimesOnePlusEgo = oneMinusBeta * (1 + Defaults.DEFAULT_EGO);
 		Iterator<DefaultEdge> edgesCCIerator = graphCC.edgeSet().iterator();
 		while (edgesCCIerator.hasNext()) {
 			DefaultEdge edge = (DefaultEdge) edgesCCIerator.next();
 			PointND edgeSource = graphCC.getEdgeSource(edge);
 			PointND edgeTarget = graphCC.getEdgeTarget(edge);
+			nominator = (edgeSource == edgeTarget) ? oneMinusBetaTimesOnePlusEgo : oneMinusBeta;
 			float dist = edgeSource.getDist(edgeTarget);
 			denominator = Constants.EPSILON + dist;
 			//notice that the x dimension comes first in this implementation
@@ -73,6 +75,7 @@ public class CoupledNetworkedCastorAndPolluxBetaEffectMatrix extends AbstractCou
 			DefaultEdge edge = (DefaultEdge) edgesPPIerator.next();
 			PointND edgeSource = graphPP.getEdgeSource(edge);
 			PointND edgeTarget = graphPP.getEdgeTarget(edge);
+			nominator = (edgeSource == edgeTarget) ? oneMinusBetaTimesOnePlusEgo : oneMinusBeta;
 			float dist = edgeSource.getDist(edgeTarget);
 			denominator = Constants.EPSILON + dist;
 			//notice that the x dimension comes first in this implementation

@@ -17,6 +17,7 @@ public interface Defaults extends Constants {
 	
 	float DEFAULT_PHI = 0.75f;
 	float DEFAULT_BETA = 0.75f;
+	float DEFAULT_EGO = 0.25f;
 	
 	String DEFAULT_TOPOLOGY = TOPOLOGY_WATTS_STROGATZ_GRAPH;
 	String DEFAULT_MODEL = MODEL_INDEPENDENT_NETWORKED_CASTOR_AND_POLLUX;
