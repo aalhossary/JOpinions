@@ -41,12 +41,15 @@ public class PointND {
 		return x;
 	}
 	
-	public void setX(float[] x) {
+	/**@deprecated dangerous. use {@link #match(float[])} instead.
+	 * @param x the float array to use instead of its float array.
+	 */
+	void setX(float[] x) {
 		checkDimensions(x);
 		this.x = x;
 	}
 
-	public void matchValues(float[] x) {
+	public void match(float[] x) {
 		checkDimensions(x);
 		System.arraycopy(x, 0, this.x, 0, d);
 	}
@@ -126,12 +129,10 @@ public class PointND {
 	}
 
 	public static class PointNDSupplier implements Supplier<PointND>{
-//		private int numDim;
 		private int next=0;
 		String name;
 		public PointNDSupplier(int numDim, String name) {
 			PointND.d = numDim;
-//			this.numDim = numDim;
 			this.name = name;
 		}
 		@Override

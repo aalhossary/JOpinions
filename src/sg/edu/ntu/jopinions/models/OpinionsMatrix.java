@@ -54,7 +54,7 @@ public class OpinionsMatrix {
 	public void match(float[][] data) {
 		for (int i = 0; i < points.length; i++) {
 			PointND pointND = points[i];
-			pointND.matchValues(data[i]);
+			pointND.match(data[i]);
 		}
 	}
 	
@@ -84,45 +84,45 @@ public class OpinionsMatrix {
 	}
 	
 	
-	public static void main(String[] args) {
-		//just a dummy code to test matrix maltiplication
-		
-		OpinionsMatrix mat1 = new OpinionsMatrix(3, 7, true);
-		for (int i = 0; i < mat1.points.length; i++) {
-			PointND p = mat1.points[i];
-			for (int j = 0; j < p.x.length; j++) {
-				p.x[j] = i*10 + j;
-			}
-		}
-		mat1.printTransposed(System.out);
-		System.out.println();
-		mat1.print(System.out);
-		System.out.println();
-		
-		
-		OpinionsMatrix mat2 = new OpinionsMatrix(3, 7, true);
-		for (int i = 0; i < mat2.points.length; i++) {
-			PointND p = mat2.points[i];
-			for (int j = 0; j < p.x.length; j++) {
-				p.x[j] = i*110 + j* 1.11111f;
-			}
-		}
-		
-		mat2.print(System.out);
-		
-		System.out.println();
-		System.out.println();
-		
-//		mat2.printTransposed(System.out);
-		
-		for (int i = 0; i < mat2.points.length; i++) {
-			PointND p2 = mat2.points[i];
-			double dist = p2.getDist(mat1.points[i]);
-			System.out.format(Defaults.OUTPUT_FORMAT, dist);
-		}
-		System.out.println();
-		
-	}
+//	public static void main(String[] args) {
+//		//just a dummy code to test matrix maltiplication
+//		
+//		OpinionsMatrix mat1 = new OpinionsMatrix(3, 7, true);
+//		for (int i = 0; i < mat1.points.length; i++) {
+//			PointND p = mat1.points[i];
+//			for (int j = 0; j < p.x.length; j++) {
+//				p.x[j] = i*10 + j;
+//			}
+//		}
+//		mat1.printTransposed(System.out);
+//		System.out.println();
+//		mat1.print(System.out);
+//		System.out.println();
+//		
+//		
+//		OpinionsMatrix mat2 = new OpinionsMatrix(3, 7, true);
+//		for (int i = 0; i < mat2.points.length; i++) {
+//			PointND p = mat2.points[i];
+//			for (int j = 0; j < p.x.length; j++) {
+//				p.x[j] = i*110 + j* 1.11111f;
+//			}
+//		}
+//		
+//		mat2.print(System.out);
+//		
+//		System.out.println();
+//		System.out.println();
+//		
+////		mat2.printTransposed(System.out);
+//		
+//		for (int i = 0; i < mat2.points.length; i++) {
+//			PointND p2 = mat2.points[i];
+//			double dist = p2.getDist(mat1.points[i]);
+//			System.out.format(Defaults.OUTPUT_FORMAT, dist);
+//		}
+//		System.out.println();
+//		
+//	}
 	public float calculateTotalDifference(float[][] tempX) {
 		float totalDiff=0;
 		for (int i = 0; i < points.length; i++) {

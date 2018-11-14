@@ -4,7 +4,6 @@
 package sg.edu.ntu.jopinions.control;
 
 import java.io.PrintStream;
-import java.util.Arrays;
 
 import javax.swing.JFrame;
 
@@ -62,28 +61,17 @@ public class Simulation implements Runnable {
 	public void run() {
 		Graph<PointND, DefaultEdge>[] graphs = this.graphs;
 
-		float oneOverNSquare;
 		boolean converged = false;
 		boolean nan = false;
 		step = 0;
-		oneOverNSquare= 1.0f / x.getD() / x.getD();
+//		float oneOverNSquare;
+//		oneOverNSquare= 1.0f / x.getD() / x.getD();
 		
 		OpinionsMatrix x = this.getX();
 		x.normalize();
 		EffectMatrix D = this.D;
-//		System.out.println(x.points[519]);
-//		float[][] line = D.getLine(519);
-//		System.out.println(Arrays.toString(line[0]));
-//		System.out.println(Arrays.toString(line[1]));
-//		System.out.println();
 		D.updateUsing(x, graphs);
-//		System.out.println(Arrays.toString(line[0]));
-//		System.out.println(Arrays.toString(line[1]));
-//		System.out.println();
 		D.normalize();
-//		System.out.println(Arrays.toString(line[0]));
-//		System.out.println(Arrays.toString(line[1]));
-//		System.out.println();
 
 		if (verbose ) {
 			printXAndD(x, D, System.out, System.out);
@@ -123,9 +111,7 @@ public class Simulation implements Runnable {
 
 				//x = tempX;
 				x.match(tempX);
-//				System.out.println(x.points[519] + "\t[unnormalized] after step"+ step);
 				x.normalize();
-//				System.out.println(x.points[519] + "\t[  normalized] after step"+ step);
 
 				//TODO save tempX if you want
 
@@ -214,68 +200,42 @@ public class Simulation implements Runnable {
 	public void setGraphs(Graph<PointND, DefaultEdge>[] graphs) {
 		this.graphs = graphs;
 	}
-//	public long updateMAX_STEPS() {
-//		this.MAX_STEPS=
-//	}
-
-
 	public OpinionsMatrix getX() {
 		return x;
 	}
-
-
 	public boolean isVerbose() {
 		return verbose;
 	}
-
-
 	public void setVerbose(boolean verbose) {
 		this.verbose = verbose;
 	}
-
-
 	public EffectMatrix getD() {
 		return D;
 	}
-
-
 	public void setD(EffectMatrix d) {
 		D = d;
 	}
-
-
 	public void setX(OpinionsMatrix x) {
 		this.x = x;
 	}
-
-
 	public String getTopology() {
 		return topology;
 	}
-
-
 	public void setTopology(String topology) {
 		this.topology = topology;
 	}
-
-
 	public String getModelNameString() {
 		return modelNameString;
 	}
-
-
 	public void setModelNameString(String model) {
 		this.modelNameString = model;
 	}
-
-
 	public long getStepDelayMillis() {
 		return stepDelayMillis;
 	}
 	public void setStepDelayMillis(long stepDelayMillis) {
 		this.stepDelayMillis = stepDelayMillis;
 	}
-
 	public void setShowGUI(boolean showGUI) {
 		this.showGUI = showGUI;
 	}
