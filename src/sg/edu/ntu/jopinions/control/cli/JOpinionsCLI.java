@@ -110,17 +110,16 @@ public class JOpinionsCLI {
 		x.normalize();
 		
 		//=========== Manage stubborn start======================================
+		Float rho = Float.valueOf(Utils.getParameter(args, Constants.PARAM_STUBBORN, "", ""+Defaults.RHO));
+		mobilize(graphCC, rho, randomGenerator);
+		mobilize(graphPP, rho, randomGenerator);
+
 		String[] manageStubborn = Utils.getParameters(args, Constants.PARAM_MANAGE_STUBBORN, (String[])null, new String[]{Constants.NONE});
 		if (manageStubborn == null) {
 			throw new IllegalArgumentException("If parameter " + Constants.PARAM_MANAGE_STUBBORN + " is introduced, it must be given a value.");
 		} else {
 			String command = manageStubborn[0];//there is at least {"none"}
-			if (command.equals(Constants.MOBILIZE)) {
-				float rho = Defaults.RHO;
-				try { rho = Float.valueOf(manageStubborn[1]); } catch (Exception e) {}
-				mobilize(graphCC, rho, randomGenerator);
-				mobilize(graphPP, rho, randomGenerator);
-			} else if (command.equals(Constants.POLARIZE_SINGLE)) {
+			if (command.equals(Constants.POLARIZE_SINGLE)) {
 				float nu = Defaults.NU;
 				try { nu = Float.valueOf(manageStubborn[1]); } catch (Exception e) {}
 				polarizeSingle(graphCC, nu);
@@ -233,13 +232,13 @@ public class JOpinionsCLI {
 		final int fixedPointsCount = (int) graph.vertexSet().stream()
 				.filter(vertex -> graph.inDegreeOf(vertex) == 1).count(); //only from itself
 
+		int newFixed = 0, targetNewFixed = 0, newMobile = 0, targetNewMobile = 0;
 		if (targetFixed < fixedPointsCount) {// we need to decrease fixed points (mobilize)
 			Iterator<PointND> subjectPointsIterator = graph.vertexSet().stream()
 					.sorted(inDegreeVertixComparator.reversed())
 					.filter(point -> point.getInDegree() == 1)
 					.iterator();
-			int targetNewMobile = fixedPointsCount - targetFixed;
-			int newMobile = 0;
+			targetNewMobile = fixedPointsCount - targetFixed;
 			node: while (newMobile < targetNewMobile && subjectPointsIterator.hasNext()) {
 				PointND pointND = subjectPointsIterator.next();
 				// candidates should have at least one remaining target (other than itself)
@@ -263,11 +262,13 @@ public class JOpinionsCLI {
 					edgeSource.setOutDegree(graph.outDegreeOf(edgeSource));
 					edgeTarget.setInDegree(graph.inDegreeOf(edgeTarget));
 					edgeTarget.setOutDegree(graph.outDegreeOf(edgeTarget));
-					newMobile++;
-					if (verbose) {
-						System.out.println("Mobilized " + pointND);
+					if (pointND.getInDegree() > 1) {
+						newMobile++;
+						if (verbose) {
+							System.out.println("Mobilized " + pointND);
+						}
+						continue node;
 					}
-					continue node;
 				}
 			}
 		} else {// we need to add more fixed points (remove incoming edges)
@@ -275,8 +276,7 @@ public class JOpinionsCLI {
 					.sorted(inDegreeVertixComparator)
 					.filter(point -> point.getInDegree() > 1) //affected by others
 					.iterator();
-			int targetNewFixed = targetFixed - fixedPointsCount;
-			int newFixed = 0;
+			targetNewFixed = targetFixed - fixedPointsCount;
 
 			node: while (newFixed < targetNewFixed && subjectPointsIterator.hasNext()) {
 				PointND pointND = subjectPointsIterator.next();
@@ -300,13 +300,19 @@ public class JOpinionsCLI {
 					edgeSource.setOutDegree(graph.outDegreeOf(edgeSource));
 					edgeTarget.setInDegree(graph.inDegreeOf(edgeTarget));
 					edgeTarget.setOutDegree(graph.outDegreeOf(edgeTarget));
-					newFixed++;
-					if (verbose) {
-						System.out.println("Fixed " + pointND);
+					if (pointND.getInDegree() == 1) {
+						newFixed++;
+						if (verbose) {
+							System.out.println("Fixed " + pointND);
+						}
+						continue node;
 					}
-					continue node;
 				}
 			}
+		}
+		if (verbose) {
+			System.out.println("total new fixed points = "+newFixed+" of "+targetNewFixed);
+			System.out.println("total new mobile points = "+newMobile+" of "+targetNewMobile);
 		}
 	}
 	private static void cacheVerticesDegrees(Graph<PointND, DefaultEdge> graphCC) {
@@ -423,10 +429,6 @@ public class JOpinionsCLI {
 	+ ""; //TODO complete later
 		System.out.println(message);
 	}
-	public void doIndependentNetworkedCastorAndPollux() {
-		
-	}
-	
 	
 	private void demo(String[] args) {
 		int dimensions = 3;

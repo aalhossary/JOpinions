@@ -22,8 +22,8 @@ public interface Constants {
 	
 	float EPSILON= 1E-1f; //Float.MIN_VALUE;
 
+	String PARAM_STUBBORN = "-stubborn";
 	String PARAM_MANAGE_STUBBORN = "-manageStubborn";
-	public String MOBILIZE = "mobilize";
 	public String POLARIZE_SINGLE = "polarizeSingle";
 	public String POLARIZE_COUPLE = "polarizeCouple";
 	public String NONE = "none";
