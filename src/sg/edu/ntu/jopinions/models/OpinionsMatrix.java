@@ -7,7 +7,7 @@ import sg.edu.ntu.jopinions.Constants;
 import sg.edu.ntu.jopinions.Defaults;
 
 /**This matrix is referenced in the text as x or x[t].<br>
- * The data is stored in one row in the form of (c<sub>1</sub>c<sub>2</sub> · · · c<sub>n</sub>p<sub>1</sub>p<sub>2</sub> · · · p<sub>n</sub>).
+ * The data is stored in one row in the form of (c<sub>1</sub>c<sub>2</sub> ï¿½ ï¿½ ï¿½ c<sub>n</sub>p<sub>1</sub>p<sub>2</sub> ï¿½ ï¿½ ï¿½ p<sub>n</sub>).
  * Every column is a point of opinion in d dimensions.
  * @author Amr
  */
@@ -130,6 +130,17 @@ public class OpinionsMatrix {
 		}
 		return totalDiff;
 	}
+	
+	public float calculateMaxTotalDifference(float[][] tempX) {
+		float totalDiff=0;
+		float localDiff = 0;
+		for (int i = 0; i < points.length; i++) {
+			localDiff = PointND.getDistRawData(points[i].x, tempX[i]);
+			totalDiff = (localDiff>totalDiff)?localDiff:totalDiff;
+		}
+		return totalDiff;
+	}
+	
 	
 	public void normalize() {
 		for (PointND pointND : points) {

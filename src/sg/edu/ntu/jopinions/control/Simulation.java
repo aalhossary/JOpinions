@@ -109,7 +109,7 @@ public class Simulation implements Runnable {
 				float[][] tempX = x.multiply(D);
 
 				//calculate the total system update (total absolute distance)
-				float totalAbsDist = x.calculateTotalDifference(tempX);
+				float totalAbsDist = x.calculateMaxTotalDifference(tempX);
 				converged = totalAbsDist < Defaults.DEFAULT_CONVERGENCE_PRECISION; //(oneOverNSquare / step);
 
 				//x = tempX;
