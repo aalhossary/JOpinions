@@ -46,6 +46,8 @@ public class Simulation implements Runnable {
 	private OpinionsMatrix x;
 
 	private EffectMatrix D;
+	private PrintStream opinionsOut;
+	private PrintStream effectOut;
 
 
 	@SuppressWarnings("unchecked")
@@ -74,8 +76,9 @@ public class Simulation implements Runnable {
 		D.normalize();
 
 		if (verbose ) {
-			printXAndD(x, D, System.out, System.out);
+			printXAndD(step, x, D, System.out, System.out);
 		}
+		printXAndD(step, x, D, opinionsOut, effectOut);
 		
 		GraphPanel<PointND, DefaultEdge> panel = null;
 		long timeBeforeStep, target=0;
@@ -123,8 +126,9 @@ public class Simulation implements Runnable {
 
 				//output opinionsMatrix and EffectMatrix
 				if (verbose ) {
-					printXAndD(x, D, System.out, System.out);
+					printXAndD(step, x, D, System.out, System.out);
 				}
+				printXAndD(step, x, D, opinionsOut, effectOut);
 
 				if (showGUI) {
 					//Show updates on GUI
@@ -163,17 +167,31 @@ public class Simulation implements Runnable {
 			System.out.format("stopped because system reached maximum mumber of steps (%d).", step);
 		}
 		outputFinalStats();
+		if(opinionsOut != null) opinionsOut.close();
+		if(effectOut != null) effectOut.close();
 	}
 
 
-	private void printXAndD(OpinionsMatrix opinionsMatrix, EffectMatrix effectMatrix, PrintStream out1, PrintStream out2) {
-		opinionsMatrix.print(out1);
-		out1.println();
-		effectMatrix.print(out2);
-		out2.println();
-		out1.println();
-		if (out1 != out2) {
-			out2.println();
+	private void printXAndD(long step, OpinionsMatrix opinionsMatrix, EffectMatrix effectMatrix, PrintStream opinionsOut, PrintStream effectOut) {
+		if(opinionsOut != null) {
+			opinionsOut.format("Step = %d\n",step);
+			opinionsMatrix.print(opinionsOut);
+			opinionsOut.println();
+		}
+
+		if (effectOut != null && effectOut != opinionsOut) {
+			effectOut.format("Step = %d",step);
+		}
+		if(effectOut != null) {
+			effectMatrix.print(effectOut);
+			effectOut.println();
+		}
+
+		if(opinionsOut != null) {
+			opinionsOut.println();
+		}
+		if (effectOut != null && effectOut != opinionsOut) {
+			effectOut.println();
 		}
 	}
 
@@ -238,5 +256,9 @@ public class Simulation implements Runnable {
 	}
 	public void setShowGUI(boolean showGUI) {
 		this.showGUI = showGUI;
+	}
+	public void setPrintStreams(PrintStream xOut, PrintStream DOut) {
+		this.opinionsOut = xOut;
+		this.effectOut = DOut;
 	}
 }

@@ -1,5 +1,10 @@
 package sg.edu.ntu.jopinions.control.cli;
 
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -65,9 +70,32 @@ public class JOpinionsCLI {
 			cli.demo(args);
 			return;
 		}
+
+		String id = Utils.getParameter(args, "-id", "", "");
+		String outFolderString = Utils.getParameter(args, "-outFolder", "./", null);
+		PrintStream xOut = null, DOut = null;
+		if (outFolderString != null) {
+			File outFolder = new File(outFolderString);
+			if ( ! outFolder.exists()) {
+				outFolder.mkdirs();
+			}
+			boolean effectMatrix = Boolean.valueOf(Utils.getParameter(args, "-effectsMatrix", "true", "false"));
+			try {
+				File xFile = new File(outFolder, String.format("x-%s.log", id));
+				File DFile = new File(outFolder, String.format("D-%s.log", id));
+				xOut = new PrintStream(new BufferedOutputStream(new FileOutputStream(xFile), 8 * 1024), false);
+				if (effectMatrix) {
+					DOut = new PrintStream(new BufferedOutputStream(new FileOutputStream(DFile), 8 * 1024), false);
+				}
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			}
+		}
+
 		Simulation simulation = new Simulation();
 		verbose = Boolean.valueOf(Utils.getParameter(args, "-v", "true", "false"));
 		simulation.setVerbose(verbose);
+		simulation.setPrintStreams(xOut, DOut);
 		boolean showGUI = Boolean.valueOf(Utils.getParameter(args, "-showGUI", "true", "false"));
 		simulation.setShowGUI(showGUI);
 		int numCouples = Integer.valueOf(Utils.getParameter(args, "-numCouples", "-1", "1000"));
@@ -127,11 +155,8 @@ public class JOpinionsCLI {
 			} else if (command.equals(Constants.POLARIZE_COUPLE)) {
 				float nu = Defaults.NU;
 				try { nu = Float.valueOf(manageStubborn[1]); } catch (Exception e) {}
-//				System.out.println(x.points[519]);
 				polarizeCouple(graphCC, x, nu, randomGenerator);
-//				System.out.println(x.points[519]);
 				polarizeCouple(graphPP, x, nu, randomGenerator);
-//				System.out.println(x.points[519]);
 			} else if (command.equals(Constants.NONE)) {
 				//do nothing
 			} else {
@@ -146,6 +171,7 @@ public class JOpinionsCLI {
 		long stepDelayMillis = (long)(1000 * Float.valueOf(Utils.getParameter(args, "-dt", "", "" + Defaults.DEFAULT_STEP_DELAY_SECS)));
 		simulation.setStepDelayMillis(stepDelayMillis);
 		simulation.start();
+		
 	}
 	private static void addSelfLoops(Graph<PointND, DefaultEdge> graph) {
 		graph.vertexSet().stream().forEach(vertix -> graph.addEdge(vertix, vertix));
