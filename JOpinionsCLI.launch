@@ -6,19 +6,10 @@
     <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
         <listEntry value="1"/>
     </listAttribute>
-    <stringAttribute key="org.eclipse.debug.ui.ATTR_CAPTURE_IN_FILE" value="${project_loc}/out.log"/>
+    <stringAttribute key="org.eclipse.debug.ui.ATTR_CAPTURE_IN_FILE" value="${project_path}/out.log"/>
     <booleanAttribute key="org.eclipse.jdt.launching.ATTR_EXCLUDE_TEST_CODE" value="true"/>
     <booleanAttribute key="org.eclipse.jdt.launching.ATTR_USE_CLASSPATH_ONLY_JAR" value="false"/>
-    <booleanAttribute key="org.eclipse.jdt.launching.ATTR_USE_START_ON_FIRST_THREAD" value="true"/>
-    <listAttribute key="org.eclipse.jdt.launching.CLASSPATH">
-        <listEntry value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#13;&#10;&lt;runtimeClasspathEntry path=&quot;5&quot; projectName=&quot;JOpinions&quot; type=&quot;1&quot;/&gt;&#13;&#10;"/>
-        <listEntry value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#13;&#10;&lt;runtimeClasspathEntry internalArchive=&quot;/JOpinions/lib/commons-lang3-3.5.jar&quot; path=&quot;5&quot; type=&quot;2&quot;/&gt;&#13;&#10;"/>
-        <listEntry value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#13;&#10;&lt;runtimeClasspathEntry internalArchive=&quot;/JOpinions/lib/jgrapht-core-1.2.1-SNAPSHOT.jar&quot; path=&quot;5&quot; sourceAttachmentPath=&quot;/jgrapht-core/src/main/java&quot; sourceRootPath=&quot;&quot; type=&quot;2&quot;/&gt;&#13;&#10;"/>
-        <listEntry value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#13;&#10;&lt;runtimeClasspathEntry containerPath=&quot;org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8&quot; path=&quot;5&quot; type=&quot;4&quot;/&gt;&#13;&#10;"/>
-    </listAttribute>
-    <booleanAttribute key="org.eclipse.jdt.launching.DEFAULT_CLASSPATH" value="false"/>
     <stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="sg.edu.ntu.jopinions.control.cli.JOpinionsCLI"/>
-    <listAttribute key="org.eclipse.jdt.launching.MODULEPATH"/>
     <stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="-seed 123456789 &#13;&#10;-#demo &#13;&#10;-v false &#13;&#10;-#flip &#13;&#10;-dt 0.0 &#13;&#10;-showGUI &#13;&#10;-numCouples 400 &#13;&#13;&#10;-stubborn 0.05 &#13;&#10;-manageStubborn polarizeCouple 0.1 polarizeSingle 0.2 none &#13;&#10;-model CONCAP-Beta ICAP INCAP CONCAP-Phi FCONCAP &#13;&#10;-phi 0.5 &#13;&#13;&#10;-beta 0.75 &#13;&#10;-topology BAG ERG KSWG WSG&#13;&#10;-id test1 &#13;&#10;-outFolder ./ -effectsMatrix false"/>
     <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="JOpinions"/>
 </launchConfiguration>
