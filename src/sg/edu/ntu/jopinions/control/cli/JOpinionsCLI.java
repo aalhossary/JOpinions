@@ -108,7 +108,7 @@ public class JOpinionsCLI {
 		Graph<PointND,DefaultEdge> graphPP = new DefaultDirectedGraph<>(new PointNDSupplier(numDimensions, Constants.PULLOX),SupplierUtil.createDefaultEdgeSupplier(),false);
 
 		//add Topology Random generators
-		GraphGenerator<PointND, DefaultEdge, PointND> generator = createTopologyGenerator(args, simulation, numCouples);
+		GraphGenerator<PointND, DefaultEdge, PointND> generator = createTopologyGenerator(args, simulation, numCouples, randomGenerator);
 		generator.generateGraph(graphCC);
 		generator.generateGraph(graphPP);
 		
@@ -350,14 +350,14 @@ public class JOpinionsCLI {
 		}
 	}
 	private static GraphGenerator<PointND, DefaultEdge, PointND> createTopologyGenerator(String[] args,
-			Simulation simulation, int numCouples) {
+			Simulation simulation, int numCouples, Random random) {
 		GraphGenerator<PointND, DefaultEdge, PointND> generator;
 		String topology = Utils.getParameter(args, "-topology", null, Defaults.DEFAULT_TOPOLOGY);
 		switch (topology) {
 		case Constants.TOPOLOGY_BARABASI_ALBERT_GRAPH:
-			int m0	= Integer.valueOf(Utils.getParameter(args, "-m0", "10", "10"));
-			int m 	= Integer.valueOf(Utils.getParameter(args, "-m",  "", "2"));
-			generator = new BarabasiAlbertGraphGenerator<>(m0, m, numCouples, randomGenerator);
+			int m0	= Integer.valueOf(Utils.getParameter(args, "-m0", "", "20"));
+			int m 	= Integer.valueOf(Utils.getParameter(args, "-m",  "", "5"));
+			generator = new BarabasiAlbertGraphGenerator<>(m0, m, numCouples, random);
 			break;
 
 		case Constants.TOPOLOGY_ERDOS_RENYI_GNP_RANDOM_GRAPH:
@@ -367,7 +367,7 @@ public class JOpinionsCLI {
 				numEdges = (numCouples / 20) * (numCouples-1);
 			}
 			//false, false are the default values for the last two parameters
-			generator = new GnmRandomGraphGenerator<>(numCouples, numEdges, randomGenerator, false, false);
+			generator = new GnmRandomGraphGenerator<>(numCouples, numEdges, random, false, false);
 			break;
 
 		case Constants.TOPOLOGY_KLEINBERG_SMALL_WORLD_GRAPH:
@@ -376,14 +376,14 @@ public class JOpinionsCLI {
 				throw new RuntimeException("numCouples must have a square root for Kleinberg model");
 			}
 			int propabilityDistripution = Integer.valueOf(Utils.getParameter(args, "-r", "", "2"));
-			generator = new KleinbergSmallWorldGraphGenerator<>((int)sqrt, 1, (int)Math.ceil(sqrt / 100.0), propabilityDistripution, randomGenerator);
+			generator = new KleinbergSmallWorldGraphGenerator<>((int)sqrt, 1, (int)Math.ceil(sqrt / 100.0), propabilityDistripution, random);
 			break;
 
 		case Constants.TOPOLOGY_WATTS_STROGATZ_GRAPH:
 			double propabilityRewiring = Double.valueOf(Utils.getParameter(args, "-p", "", "0.5"));
 			int connectToKNN = Integer.valueOf(Utils.getParameter(args, "-k", "", "6")); //must be even
 			//I don't know what is addInsteadOfRewire, but false is the default behavior
-			generator = new WattsStrogatzGraphGenerator<>(numCouples, connectToKNN, propabilityRewiring, false, randomGenerator);
+			generator = new WattsStrogatzGraphGenerator<>(numCouples, connectToKNN, propabilityRewiring, false, random);
 			break;
 
 		default:
