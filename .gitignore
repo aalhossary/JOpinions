@@ -1,2 +1,6 @@
 /bin/
 /out.log
+/x-*.log
+/D-*.log
+/gg-*.log
+/pp-*.log

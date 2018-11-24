@@ -22,6 +22,10 @@ import org.jgrapht.generate.WattsStrogatzGraphGenerator;
 import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.EdgeReversedGraph;
+import org.jgrapht.io.CSVExporter;
+import org.jgrapht.io.CSVFormat;
+import org.jgrapht.io.ExportException;
+import org.jgrapht.io.IntegerComponentNameProvider;
 import org.jgrapht.util.SupplierUtil;
 
 import sg.edu.ntu.jopinions.Constants;
@@ -73,6 +77,7 @@ public class JOpinionsCLI {
 
 		String id = Utils.getParameter(args, "-id", "", "");
 		String outFolderString = Utils.getParameter(args, "-outFolder", "./", null);
+		File ggFile = null, ppFile = null;
 		PrintStream xOut = null, DOut = null;
 		if (outFolderString != null) {
 			File outFolder = new File(outFolderString);
@@ -81,6 +86,8 @@ public class JOpinionsCLI {
 			}
 			boolean effectMatrix = Boolean.valueOf(Utils.getParameter(args, "-effectsMatrix", "true", "false"));
 			try {
+				ggFile = new File(outFolder, String.format("gg-%s.log", id));
+				ppFile = new File(outFolder, String.format("pp-%s.log", id));
 				File xFile = new File(outFolder, String.format("x-%s.log", id));
 				File DFile = new File(outFolder, String.format("D-%s.log", id));
 				xOut = new PrintStream(new BufferedOutputStream(new FileOutputStream(xFile), 8 * 1024), false);
@@ -115,14 +122,37 @@ public class JOpinionsCLI {
 		addSelfLoops(graphCC);
 		addSelfLoops(graphPP);
 
-		cacheVerticesDegrees(graphCC);
-		cacheVerticesDegrees(graphPP);
-		
 		boolean flip = Boolean.parseBoolean(Utils.getParameter(args, "-flip", "true", "false"));
 		if (flip) {
 			graphCC = new EdgeReversedGraph<PointND, DefaultEdge>(graphCC);
 			graphPP = new EdgeReversedGraph<PointND, DefaultEdge>(graphPP);
 		}
+
+		//Output graphs here
+		final IntegerComponentNameProvider<PointND> vertexIDProvider = new IntegerComponentNameProvider<PointND>();
+		CSVExporter<PointND, DefaultEdge> exporter = new CSVExporter<>(vertexIDProvider, CSVFormat.ADJACENCY_LIST, ',');
+//		exporter.setParameter(CSVFormat.Parameter.EDGE_WEIGHTS, true);
+		try {
+			if (verbose) {
+				System.out.println("============GG Graph=============");
+				vertexIDProvider.clear();
+				exporter.exportGraph(graphCC, System.out);
+				System.out.println("============PP Graph=============");
+				vertexIDProvider.clear();
+				exporter.exportGraph(graphPP, System.out);
+			}
+			if (ggFile != null && ppFile != null) {
+				vertexIDProvider.clear();
+				exporter.exportGraph(graphCC, ggFile);
+				vertexIDProvider.clear();
+				exporter.exportGraph(graphPP, ppFile);
+			}
+		} catch (ExportException e1) {
+			e1.printStackTrace();
+		}
+
+		cacheVerticesDegrees(graphCC);
+		cacheVerticesDegrees(graphPP);
 
 		@SuppressWarnings("unchecked")
 		Graph<PointND, DefaultEdge>[] graphs = (Graph<PointND, DefaultEdge>[]) new Graph[]{graphCC, null, null,graphPP};
