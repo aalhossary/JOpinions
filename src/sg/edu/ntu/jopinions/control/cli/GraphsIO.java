@@ -21,6 +21,7 @@ import org.jgrapht.io.IntegerComponentNameProvider;
 import org.jgrapht.io.VertexProvider;
 
 import sg.edu.ntu.jopinions.models.PointND;
+import sg.edu.ntu.jopinions.models.Utils;
 
 public class GraphsIO {
 	static final IntegerComponentNameProvider<PointND> vertexIDProvider = new IntegerComponentNameProvider<PointND>();
@@ -67,6 +68,7 @@ public class GraphsIO {
 	public static void importGraph(String name, int d, Graph<PointND, DefaultEdge> g, File file) throws ImportException{
 		prepareToImport(d, name);
 		importer.importGraph(g, file);
+		Utils.cacheVerticesDegrees(g);
 	}
 	
 	static class PointNDVertixProvider implements VertexProvider<PointND>{
@@ -75,6 +77,7 @@ public class GraphsIO {
 		
 		public PointNDVertixProvider(int d, String name) {
 			this.d = d;
+			PointND.setNumDimensions(d);
 			this.name = name;
 		}
 		public void setD(int d) {

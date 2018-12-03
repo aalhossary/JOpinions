@@ -7,6 +7,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.io.File;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -41,16 +44,31 @@ import org.jgrapht.io.ImportException;
 
 import sg.edu.ntu.jopinions.Constants;
 import sg.edu.ntu.jopinions.control.cli.GraphsIO;
+import sg.edu.ntu.jopinions.control.cli.Parser;
+import sg.edu.ntu.jopinions.models.OpinionsMatrix;
 import sg.edu.ntu.jopinions.models.PointND;
+import sg.edu.ntu.jopinions.models.Utils;
 import sg.edu.ntu.jopinions.views.GraphPanel;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.ChangeEvent;
 
 public class SimulationFrame extends JFrame {
 	private static final long serialVersionUID = 9056033034632796388L;
 
 	private boolean verbose = false;
 	private JPanel contentPane;
+	private Parser parser = null;
+	private OpinionsMatrix x;
+	private Map<Integer, float[][]> states;
+	private int maxFrame = -1;
 	private final Action openAction = new OpenAction();
+	private final Action action = new PlayPauseAction();
 	private GraphPanel<PointND, DefaultEdge> graphPanel;
+	private JSlider slider;
+	private JSpinner frameSpinner;
+	private JButton playPauseButton;
+	private JButton stopButton;
+	private JMenuItem mntmClose;
 	
 	/**
 	 * Launch the application.
@@ -94,7 +112,7 @@ public class SimulationFrame extends JFrame {
 		mntmOpen.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, InputEvent.CTRL_DOWN_MASK));
 		mnFile.add(mntmOpen);
 		
-		JMenuItem mntmClose = new JMenuItem("Close");
+		mntmClose = new JMenuItem("Close");
 		mntmClose.setEnabled(false);
 		mntmClose.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_W, InputEvent.CTRL_DOWN_MASK));
 		mnFile.add(mntmClose);
@@ -113,20 +131,34 @@ public class SimulationFrame extends JFrame {
 		contentPane.add(buttomPanel, BorderLayout.SOUTH);
 		buttomPanel.setLayout(new BorderLayout(0, 0));
 		
-		JSlider slider = new JSlider();
+		slider = new JSlider();
+		slider.addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent e) {
+				if (states == null) {
+					return;
+				}
+				int newValue = ((JSlider)e.getSource()).getValue();
+				float[][] state = states.get(newValue);
+				if (state != null) {
+					x.match(state);
+					graphPanel.repaint();
+				}
+			}
+		});
 		slider.setValue(0);
 		buttomPanel.add(slider, BorderLayout.CENTER);
 
 		JPanel panel = new JPanel();
 		buttomPanel.add(panel, BorderLayout.EAST);
 
-		JButton playPauseButton = new JButton("> / ||");
+		playPauseButton = new JButton("> / ||");
+		playPauseButton.setAction(action);
 		playPauseButton.setEnabled(false);
 		
 		JLabel lblFrame = new JLabel("Frame");
 		panel.add(lblFrame);
 		
-		JSpinner frameSpinner = new JSpinner();
+		frameSpinner = new JSpinner();
 		panel.add(frameSpinner);
 		
 		JLabel lblDt = new JLabel("dt");
@@ -137,7 +169,7 @@ public class SimulationFrame extends JFrame {
 		panel.add(speedSpinner);
 		panel.add(playPauseButton);
 
-		JButton stopButton = new JButton("stop");
+		stopButton = new JButton("stop");
 		stopButton.setEnabled(false);
 		panel.add(stopButton);
 
@@ -228,6 +260,9 @@ public class SimulationFrame extends JFrame {
 //		    	System.out.println("You chose to open this file: " + chooser.getSelectedFile().getName());
 		    	final File selectedFolder = chooser.getSelectedFile();
 		    	String id = selectedFolder.getName();
+		    	String paramsString = id.replaceFirst("^", "-").replaceAll(",", " -").replaceAll("_", " ");
+		    	String[] args = paramsString.split(" ");
+		    	int n = Integer.valueOf(Utils.getParameter(args, "-numCouples", "-1", "400"));
 		    	File fileGG = new File(selectedFolder, String.format("GG-%s.log", id));
 		    	File filePP = new File(selectedFolder, String.format("PP-%s.log", id));
 		    	try {
@@ -240,13 +275,112 @@ public class SimulationFrame extends JFrame {
 					System.out.println(graphCC);
 					System.out.println(graphPP);
 				}
-				GraphPanel<PointND, DefaultEdge> graphPanel = getGraphPanel();
+		    	PointND[] castorPointNDs = graphCC.vertexSet().toArray(new PointND[0]);
+		    	PointND[] pulloxPointNDs = graphPP.vertexSet().toArray(new PointND[0]);
+		    	//check for consistency
+		    	for (int i = 0; i < pulloxPointNDs.length; i++) {
+		    		PointND pointC = castorPointNDs[i];
+		    		PointND pointP = pulloxPointNDs[i];
+		    		if (pointC.getId() != pointP.getId()) {
+		    			throw new RuntimeException("points are not corresponding: "+ pointC + ", " + pointP);
+		    		}
+		    	}
+		    	
+		    	GraphPanel<PointND, DefaultEdge> graphPanel = getGraphPanel();
 		    	graphPanel.setGraphs(graphs);
-		    	File x = new File(selectedFolder, String.format("x-%s.log", id));
+		    	
+		    	File xFile = new File(selectedFolder, String.format("x-%s.log", id));
+		    	parser = new Parser(n, 3, xFile);
+		    	states = parser.parse();
+				float[][] stateZero = states.get(0);
+				
+				PointND[] points = new PointND[stateZero.length];
+				System.arraycopy(castorPointNDs, 0, points, 0, n);
+				System.arraycopy(pulloxPointNDs, 0, points, n, n);
+				
+				x = new OpinionsMatrix(3, n, false);
+		    	x.set(points);
+		    	
+		    	int maxKey=0;
+		    	Set<Integer> keys = states.keySet();
+		    	for (Iterator<Integer> iterator = keys.iterator(); iterator.hasNext();) {
+					Integer key = iterator.next();
+					if(key > maxKey) {
+						maxKey = key;
+					}
+				}
+		    	maxFrame = maxKey;
+				slider.setValue(0);
+				slider.setMinimum(0);
+				slider.setMaximum(maxFrame);
+		    	setdisplayAndCloseControlsEnabled(true);
+		    	
+		    	x.match(stateZero);
+		    	graphPanel.repaint();
 		    }
 		}
 	}
 	public GraphPanel<PointND, DefaultEdge> getGraphPanel() {
 		return graphPanel;
+	}
+	protected JSlider getSlider() {
+		return slider;
+	}
+	protected JSpinner getFrameSpinner() {
+		return frameSpinner;
+	}
+	protected JButton getPlayPauseButton() {
+		return playPauseButton;
+	}
+	public JButton getStopButton() {
+		return stopButton;
+	}
+	protected JMenuItem getMntmClose() {
+		return mntmClose;
+	}
+
+	void setdisplayAndCloseControlsEnabled(boolean enabled) {
+		getSlider().setEnabled(enabled);
+		getFrameSpinner().setEnabled(enabled);
+		getPlayPauseButton().setEnabled(enabled);
+		getStopButton().setEnabled(enabled);
+	}
+	private class PlayPauseAction extends AbstractAction {
+		private static final long serialVersionUID = 1L;
+		private boolean playing = false;
+		int next = 0;
+		public PlayPauseAction() {
+			putValue(NAME, "> / ||");
+			putValue(SHORT_DESCRIPTION, "Play / Pause");
+		}
+		public void actionPerformed(ActionEvent e) {
+			playing = ! playing;
+			if(playing) {
+				new Thread() {
+					@Override
+					public void run() {
+						float[][] nextState;
+						while (playing) {
+							//show next
+							while ((nextState = states.get(next++)) == null) {
+								//just advance and check
+								if (next > maxFrame) {
+									playing = false;
+								}
+							}
+							
+							slider.setValue(next);
+							
+							//sleep
+							try {
+								Thread.sleep(500);
+							} catch (InterruptedException e) {
+								e.printStackTrace();
+							}
+						}
+					}
+				}.start();
+			}
+		}
 	}
 }

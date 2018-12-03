@@ -136,8 +136,8 @@ public class JOpinionsCLI {
 			GraphsIO.export(graphPP, ppFile);
 		}
 
-		cacheVerticesDegrees(graphCC);
-		cacheVerticesDegrees(graphPP);
+		Utils.cacheVerticesDegrees(graphCC);
+		Utils.cacheVerticesDegrees(graphPP);
 
 		@SuppressWarnings("unchecked")
 		Graph<PointND, DefaultEdge>[] graphs = (Graph<PointND, DefaultEdge>[]) new Graph[]{graphCC, null, null,graphPP};
@@ -354,14 +354,6 @@ public class JOpinionsCLI {
 		if (verbose) {
 			System.out.println("total new fixed points = "+newFixed+" of "+targetNewFixed);
 			System.out.println("total new mobile points = "+newMobile+" of "+targetNewMobile);
-		}
-	}
-	private static void cacheVerticesDegrees(Graph<PointND, DefaultEdge> graphCC) {
-		Iterator<PointND> iterator = graphCC.vertexSet().iterator();
-		while (iterator.hasNext()) {
-			PointND vertex = (PointND) iterator.next();
-			vertex.setInDegree(graphCC.inDegreeOf(vertex));
-			vertex.setOutDegree(graphCC.outDegreeOf((vertex)));
 		}
 	}
 	private static GraphGenerator<PointND, DefaultEdge, PointND> createTopologyGenerator(String[] args,

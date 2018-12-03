@@ -1,6 +1,10 @@
 package sg.edu.ntu.jopinions.models;
 
 import java.util.ArrayList;
+import java.util.Iterator;
+
+import org.jgrapht.Graph;
+import org.jgrapht.graph.DefaultEdge;
 
 public final class Utils {
 	private Utils() {}
@@ -76,6 +80,15 @@ public final class Utils {
 			return valueIfNotFound;
 		}
 		return input;
+	}
+
+	public static void cacheVerticesDegrees(Graph<PointND, DefaultEdge> graph) {
+		Iterator<PointND> iterator = graph.vertexSet().iterator();
+		while (iterator.hasNext()) {
+			PointND vertex = (PointND) iterator.next();
+			vertex.setInDegree(graph.inDegreeOf(vertex));
+			vertex.setOutDegree(graph.outDegreeOf((vertex)));
+		}
 	}
 
 
