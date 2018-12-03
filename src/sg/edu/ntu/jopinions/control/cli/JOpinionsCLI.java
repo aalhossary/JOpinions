@@ -22,10 +22,6 @@ import org.jgrapht.generate.WattsStrogatzGraphGenerator;
 import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.EdgeReversedGraph;
-import org.jgrapht.io.CSVExporter;
-import org.jgrapht.io.CSVFormat;
-import org.jgrapht.io.ExportException;
-import org.jgrapht.io.IntegerComponentNameProvider;
 import org.jgrapht.util.SupplierUtil;
 
 import sg.edu.ntu.jopinions.Constants;
@@ -129,26 +125,15 @@ public class JOpinionsCLI {
 		}
 
 		//Output graphs here
-		final IntegerComponentNameProvider<PointND> vertexIDProvider = new IntegerComponentNameProvider<PointND>();
-		CSVExporter<PointND, DefaultEdge> exporter = new CSVExporter<>(vertexIDProvider, CSVFormat.ADJACENCY_LIST, ',');
-//		exporter.setParameter(CSVFormat.Parameter.EDGE_WEIGHTS, true);
-		try {
-			if (verbose) {
-				System.out.println("============GG Graph=============");
-				vertexIDProvider.clear();
-				exporter.exportGraph(graphCC, System.out);
-				System.out.println("============PP Graph=============");
-				vertexIDProvider.clear();
-				exporter.exportGraph(graphPP, System.out);
-			}
-			if (ggFile != null && ppFile != null) {
-				vertexIDProvider.clear();
-				exporter.exportGraph(graphCC, ggFile);
-				vertexIDProvider.clear();
-				exporter.exportGraph(graphPP, ppFile);
-			}
-		} catch (ExportException e1) {
-			e1.printStackTrace();
+		if (verbose) {
+			System.out.println("============GG Graph=============");
+			GraphsIO.export(graphCC, System.out);
+			System.out.println("============PP Graph=============");
+			GraphsIO.export(graphPP, System.out);
+		}
+		if (ggFile != null && ppFile != null) {
+			GraphsIO.export(graphCC, ggFile);
+			GraphsIO.export(graphPP, ppFile);
 		}
 
 		cacheVerticesDegrees(graphCC);
