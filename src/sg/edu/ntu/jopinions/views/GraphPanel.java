@@ -50,6 +50,7 @@ public class GraphPanel<V, E> extends JPanel implements ComponentListener, Mouse
 	private boolean button3Down = false;
 
 	private boolean showNodeDetails = false;
+	private boolean showEdges = true;
 	
 	public GraphPanel() {
 		this.addComponentListener(this);
@@ -81,7 +82,7 @@ public class GraphPanel<V, E> extends JPanel implements ComponentListener, Mouse
 					   (int)(xRatio * pulloxX[0]) + xTranslation, (int)(yRatio * pulloxX[1]) + yTranslation);
 		}
 		
-		if(!showNodeDetails) {
+		if(showEdges) {
 			//draw Pullox edges
 			g.setColor(Defaults.COLOR_PULLOX);
 			for (int i = 0; i < pulloxSourcesNoLoop.length; i++) {
@@ -231,7 +232,9 @@ public class GraphPanel<V, E> extends JPanel implements ComponentListener, Mouse
 	@Override
 	public void mouseMoved(MouseEvent e) {}
 	@Override
-	public void mouseClicked(MouseEvent e) {}
+	public void mouseClicked(MouseEvent e) {
+		requestFocusInWindow();
+	}
 	@Override
 	public void mouseDragged(MouseEvent e) {
 		//Zooming will not considered unless done using the left button
@@ -296,7 +299,12 @@ public class GraphPanel<V, E> extends JPanel implements ComponentListener, Mouse
 	}
 
 	@Override
-	public void keyTyped(KeyEvent e) {}
+	public void keyTyped(KeyEvent e) {
+		if(KeyEvent.VK_E == KeyEvent.getExtendedKeyCodeForChar(e.getKeyChar())) {
+			showEdges = ! showEdges;
+		}
+		repaint();
+	}
 
 	@Override
 	public void keyPressed(KeyEvent e) {
