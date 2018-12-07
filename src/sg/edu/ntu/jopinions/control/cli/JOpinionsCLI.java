@@ -469,6 +469,10 @@ public class JOpinionsCLI {
 		Simulation simulation = new Simulation();
 		verbose = Boolean.valueOf(Utils.getParameter(args, "-v", "true", ""+simulation.isVerbose()));
 		simulation.setVerbose(verbose);
+		boolean showGUI = Boolean.valueOf(Utils.getParameter(args, "-showGUI", "true", "false"));
+		simulation.setShowGUI(showGUI);
+		long stepDelayMillis = (long)(1000 * Float.valueOf(Utils.getParameter(args, "-dt", "", "" + Defaults.DEFAULT_STEP_DELAY_SECS)));
+		simulation.setStepDelayMillis(stepDelayMillis);
 
 		Graph<PointND, DefaultEdge> gCC = new DefaultDirectedGraph<>(DefaultEdge.class);
 		Graph<PointND, DefaultEdge> gPP = new DefaultDirectedGraph<>(DefaultEdge.class);
