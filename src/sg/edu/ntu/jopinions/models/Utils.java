@@ -91,5 +91,11 @@ public final class Utils {
 		}
 	}
 
+	public static String[] id2Args(String id) {
+		String paramsString = id.replaceFirst("^", "-").replaceAll(",", " -").replaceAll("=", " ").replaceAll("_", " ");
+		String[] args = paramsString.split(" ");
+		return args;
+	}
+
 
 }

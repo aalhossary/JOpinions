@@ -2,14 +2,12 @@ package sg.edu.ntu.jopinions.control.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.io.File;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -31,10 +29,13 @@ import javax.swing.JSeparator;
 import javax.swing.JSlider;
 import javax.swing.JSpinner;
 import javax.swing.KeyStroke;
-import javax.swing.SpinnerNumberModel;
+import javax.swing.SpinnerListModel;
+import javax.swing.SpinnerModel;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.EtchedBorder;
 import javax.swing.border.TitledBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import org.jgrapht.Graph;
@@ -49,8 +50,6 @@ import sg.edu.ntu.jopinions.models.OpinionsMatrix;
 import sg.edu.ntu.jopinions.models.PointND;
 import sg.edu.ntu.jopinions.models.Utils;
 import sg.edu.ntu.jopinions.views.GraphPanel;
-import javax.swing.event.ChangeListener;
-import javax.swing.event.ChangeEvent;
 
 public class SimulationFrame extends JFrame {
 	private static final long serialVersionUID = 9056033034632796388L;
@@ -59,16 +58,17 @@ public class SimulationFrame extends JFrame {
 	private JPanel contentPane;
 	private Parser parser = null;
 	private OpinionsMatrix x;
-	private Map<Integer, float[][]> states;
+	private float[][][] states;
 	private int maxFrame = -1;
 	private final Action openAction = new OpenAction();
-	private final Action action = new PlayPauseAction();
+	private final PlayPauseAction playPauseAction = new PlayPauseAction();
 	private GraphPanel<PointND, DefaultEdge> graphPanel;
 	private JSlider slider;
 	private JSpinner frameSpinner;
 	private JButton playPauseButton;
 	private JButton stopButton;
 	private JMenuItem mntmClose;
+	private JSpinner speedSpinner;
 	
 	/**
 	 * Launch the application.
@@ -124,35 +124,19 @@ public class SimulationFrame extends JFrame {
 		mnFile.add(mntmExit);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
-		setContentPane(contentPane);
 		contentPane.setLayout(new BorderLayout(0, 0));
 
 		JPanel buttomPanel = new JPanel();
 		contentPane.add(buttomPanel, BorderLayout.SOUTH);
 		buttomPanel.setLayout(new BorderLayout(0, 0));
 		
-		slider = new JSlider();
-		slider.addChangeListener(new ChangeListener() {
-			public void stateChanged(ChangeEvent e) {
-				if (states == null) {
-					return;
-				}
-				int newValue = ((JSlider)e.getSource()).getValue();
-				float[][] state = states.get(newValue);
-				if (state != null) {
-					x.match(state);
-					graphPanel.repaint();
-				}
-			}
-		});
-		slider.setValue(0);
-		buttomPanel.add(slider, BorderLayout.CENTER);
+		buttomPanel.add(getSlider(), BorderLayout.CENTER);
 
 		JPanel panel = new JPanel();
 		buttomPanel.add(panel, BorderLayout.EAST);
 
 		playPauseButton = new JButton("> / ||");
-		playPauseButton.setAction(action);
+		playPauseButton.setAction(playPauseAction);
 		playPauseButton.setEnabled(false);
 		
 		JLabel lblFrame = new JLabel("Frame");
@@ -161,11 +145,15 @@ public class SimulationFrame extends JFrame {
 		frameSpinner = new JSpinner();
 		panel.add(frameSpinner);
 		
-		JLabel lblDt = new JLabel("dt");
-		panel.add(lblDt);
+		JLabel lblFps = new JLabel("FpS");
+		panel.add(lblFps);
 		
-		JSpinner speedSpinner = new JSpinner();
-		speedSpinner.setModel(new SpinnerNumberModel(0.5, 0.01, 5.0, 0.1));
+		speedSpinner = new JSpinner();
+//		final SpinnerNumberModel model = new SpinnerNumberModel(0.5, 0.01, 5.0, 0.1);
+		final SpinnerModel model = new SpinnerListModel(new Float[]{0.24f, 0.3f, 0.5f, 1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 10.0f, 20.0f, 30.0f, 60.0f, 100.0f, 1000.0f, 100_000.0f});
+		model.setValue(2.0f);
+		speedSpinner.setModel(model);
+		speedSpinner.getEditor().setMinimumSize(new Dimension(40, -1));
 		panel.add(speedSpinner);
 		panel.add(playPauseButton);
 
@@ -173,8 +161,7 @@ public class SimulationFrame extends JFrame {
 		stopButton.setEnabled(false);
 		panel.add(stopButton);
 
-		graphPanel = new GraphPanel<>();
-		contentPane.add(graphPanel, BorderLayout.CENTER);
+		setContentPane(contentPane);
 
 		JScrollPane scrollPane = new JScrollPane();
 		JPanel paramsPanel = new JPanel();
@@ -182,6 +169,9 @@ public class SimulationFrame extends JFrame {
 		paramsPanel.add(verticalBox);
 		scrollPane.setViewportView(paramsPanel);
 		contentPane.add(scrollPane, BorderLayout.EAST);
+		GraphPanel<PointND, DefaultEdge> graphPanel = getGraphPanel();
+		contentPane.add(graphPanel, BorderLayout.CENTER);
+
 
 		JPanel modelsPanel = new JPanel();
 		modelsPanel.setBorder(new TitledBorder(null, "Model", TitledBorder.LEADING, TitledBorder.TOP, null, null));
@@ -235,6 +225,28 @@ public class SimulationFrame extends JFrame {
 
 	}
 
+	JSlider getSlider() {
+		if (slider == null) {
+			slider = new JSlider();
+			slider.addChangeListener(new ChangeListener() {
+				public void stateChanged(ChangeEvent e) {
+					int newValue = ((JSlider) e.getSource()).getValue();
+					playPauseAction.current = newValue;
+					if (states == null) {
+						return;
+					}
+					float[][] state = states[newValue];
+					if (state != null) {
+						x.match(state);
+						graphPanel.repaint();
+					}
+				}
+			});
+			slider.setValue(0);
+		}
+		return slider;
+	}
+
 	private class OpenAction extends AbstractAction {
 		private static final long serialVersionUID = 2368183798042672044L;
 		JFileChooser chooser = new JFileChooser();
@@ -260,11 +272,14 @@ public class SimulationFrame extends JFrame {
 //		    	System.out.println("You chose to open this file: " + chooser.getSelectedFile().getName());
 		    	final File selectedFolder = chooser.getSelectedFile();
 		    	String id = selectedFolder.getName();
-		    	String paramsString = id.replaceFirst("^", "-").replaceAll(",", " -").replaceAll("_", " ");
-		    	String[] args = paramsString.split(" ");
+		    	String[] args = Utils.id2Args(id);
 		    	int n = Integer.valueOf(Utils.getParameter(args, "-numCouples", "-1", "400"));
-		    	File fileGG = new File(selectedFolder, String.format("GG-%s.log", id));
-		    	File filePP = new File(selectedFolder, String.format("PP-%s.log", id));
+		    	File fileGG = new File(selectedFolder, String.format("gg-%s.log", id));
+		    	File filePP = new File(selectedFolder, String.format("pp-%s.log", id));
+		    	if (! (fileGG.exists() && filePP.exists()) ) {
+					System.err.println("WARNING: Either you selected a wrong folder or the folder does not contain the graph files. "+selectedFolder.getAbsolutePath());
+					return;
+				}
 		    	try {
 					GraphsIO.importGraph(Constants.CASTOR, 3, graphCC, fileGG);
 		    		GraphsIO.importGraph(Constants.PULLOX, 3, graphPP, filePP);
@@ -292,7 +307,7 @@ public class SimulationFrame extends JFrame {
 		    	File xFile = new File(selectedFolder, String.format("x-%s.log", id));
 		    	parser = new Parser(n, 3, xFile);
 		    	states = parser.parse();
-				float[][] stateZero = states.get(0);
+				float[][] stateZero = states[0];
 				
 				PointND[] points = new PointND[stateZero.length];
 				System.arraycopy(castorPointNDs, 0, points, 0, n);
@@ -301,18 +316,10 @@ public class SimulationFrame extends JFrame {
 				x = new OpinionsMatrix(3, n, false);
 		    	x.set(points);
 		    	
-		    	int maxKey=0;
-		    	Set<Integer> keys = states.keySet();
-		    	for (Iterator<Integer> iterator = keys.iterator(); iterator.hasNext();) {
-					Integer key = iterator.next();
-					if(key > maxKey) {
-						maxKey = key;
-					}
-				}
-		    	maxFrame = maxKey;
-				slider.setValue(0);
+		    	maxFrame = states.length-1;
 				slider.setMinimum(0);
 				slider.setMaximum(maxFrame);
+				slider.setValue(0);
 		    	setdisplayAndCloseControlsEnabled(true);
 		    	
 		    	x.match(stateZero);
@@ -321,10 +328,11 @@ public class SimulationFrame extends JFrame {
 		}
 	}
 	public GraphPanel<PointND, DefaultEdge> getGraphPanel() {
+		if (graphPanel == null) {
+			graphPanel = new GraphPanel<>();
+//			graphPanel.setFocusable(true);
+		}
 		return graphPanel;
-	}
-	protected JSlider getSlider() {
-		return slider;
 	}
 	protected JSpinner getFrameSpinner() {
 		return frameSpinner;
@@ -347,8 +355,8 @@ public class SimulationFrame extends JFrame {
 	}
 	private class PlayPauseAction extends AbstractAction {
 		private static final long serialVersionUID = 1L;
-		private boolean playing = false;
-		int next = 0;
+		boolean playing = false;
+		int current = 0;
 		public PlayPauseAction() {
 			putValue(NAME, "> / ||");
 			putValue(SHORT_DESCRIPTION, "Play / Pause");
@@ -359,21 +367,18 @@ public class SimulationFrame extends JFrame {
 				new Thread() {
 					@Override
 					public void run() {
-						float[][] nextState;
 						while (playing) {
-							//show next
-							while ((nextState = states.get(next++)) == null) {
-								//just advance and check
-								if (next > maxFrame) {
-									playing = false;
-								}
-							}
+							//show current
+							while (++current < states.length && states[current] == null)
+								; //just keep advancing
+							if (current > maxFrame)
+								playing = false;
 							
-							slider.setValue(next);
+							slider.setValue(current);
 							
 							//sleep
 							try {
-								Thread.sleep(500);
+								Thread.sleep((long) (1000 / (float)speedSpinner.getValue()));
 							} catch (InterruptedException e) {
 								e.printStackTrace();
 							}
@@ -382,5 +387,8 @@ public class SimulationFrame extends JFrame {
 				}.start();
 			}
 		}
+	}
+	public JSpinner getSpeedSpinner() {
+		return speedSpinner;
 	}
 }

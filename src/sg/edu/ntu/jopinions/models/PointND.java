@@ -63,7 +63,7 @@ public class PointND {
 		return this == other ? 0 : getDistRawData(this.x, other.x);
 	}
 
-	static float getDistRawData(float[] x1, float[] x2) {
+	public static float getDistRawData(float[] x1, float[] x2) {
 		double ret = 0;
 		for (int i = 0; i < x1.length; i++) {
 			float deltaX_i = x1[i]-x2[i];
