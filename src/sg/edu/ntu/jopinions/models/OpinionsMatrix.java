@@ -123,7 +123,7 @@ public class OpinionsMatrix {
 //		System.out.println();
 //		
 //	}
-	public float calculateTotalDifference(float[][] tempX) {
+	public float calculateDifference(float[][] tempX) {
 		float totalDiff=0;
 		for (int i = 0; i < points.length; i++) {
 			totalDiff += PointND.getDistRawData(points[i].x, tempX[i]);
@@ -131,7 +131,7 @@ public class OpinionsMatrix {
 		return totalDiff;
 	}
 	
-	public float calculateMaxTotalDifference(float[][] tempX) {
+	public float calculateMaxDifference(float[][] tempX) {
 		float totalDiff=0;
 		float localDiff = 0;
 		for (int i = 0; i < points.length; i++) {

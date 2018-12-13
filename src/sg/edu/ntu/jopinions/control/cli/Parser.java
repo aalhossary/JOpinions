@@ -15,7 +15,13 @@ public class Parser {
 
 	File xFile = null;
 	
+	/**may contain nulls
+	 * @param n
+	 * @param d
+	 * @param xFile
+	 */
 	public Parser(int n, int d, File xFile) {
+		
 		this.n = n;
 //		x = new OpinionsMatrix(d,n,false);
 		this.xFile = xFile;
