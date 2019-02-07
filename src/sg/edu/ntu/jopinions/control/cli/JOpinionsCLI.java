@@ -124,21 +124,6 @@ public class JOpinionsCLI {
 			graphPP = new EdgeReversedGraph<PointND, DefaultEdge>(graphPP);
 		}
 
-		//Output graphs here
-		if (verbose) {
-			System.out.println("============GG Graph=============");
-			GraphsIO.export(graphCC, System.out);
-			System.out.println("============PP Graph=============");
-			GraphsIO.export(graphPP, System.out);
-		}
-		if (ggFile != null && ppFile != null) {
-			GraphsIO.export(graphCC, ggFile);
-			GraphsIO.export(graphPP, ppFile);
-		}
-
-		Utils.cacheVerticesDegrees(graphCC);
-		Utils.cacheVerticesDegrees(graphPP);
-
 		@SuppressWarnings("unchecked")
 		Graph<PointND, DefaultEdge>[] graphs = (Graph<PointND, DefaultEdge>[]) new Graph[]{graphCC, null, null,graphPP};
 		simulation.setGraphs(graphs);
@@ -179,6 +164,22 @@ public class JOpinionsCLI {
 			}
 		}
 		//=========== Manage stubborn end======================================
+
+		//=========== Output graphs ===========================================
+		if (verbose) {
+			System.out.println("============GG Graph=============");
+			GraphsIO.export(graphCC, System.out);
+			System.out.println("============PP Graph=============");
+			GraphsIO.export(graphPP, System.out);
+		}
+		if (ggFile != null && ppFile != null) {
+			GraphsIO.export(graphCC, ggFile);
+			GraphsIO.export(graphPP, ppFile);
+		}
+		//=========== Output graphs End ===========================================
+
+		Utils.cacheVerticesDegrees(graphCC);
+		Utils.cacheVerticesDegrees(graphPP);
 
 
 		simulation.setX(x);
