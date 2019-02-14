@@ -24,6 +24,7 @@ import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.EdgeReversedGraph;
 import org.jgrapht.util.SupplierUtil;
 
+import sg.edu.ntu.jopinions.BollobasGraphGenerator;
 import sg.edu.ntu.jopinions.Constants;
 import sg.edu.ntu.jopinions.Defaults;
 import sg.edu.ntu.jopinions.control.Simulation;
@@ -392,6 +393,14 @@ public class JOpinionsCLI {
 			int connectToKNN = Integer.valueOf(Utils.getParameter(args, "-k", "", "6")); //must be even
 			//I don't know what is addInsteadOfRewire, but false is the default behavior
 			generator = new WattsStrogatzGraphGenerator<>(numCouples, connectToKNN, propabilityRewiring, false, random);
+			break;
+
+		case Constants.BOLLOBAS_DIRECTED_SCALEFREE_GRAPH:
+			float alpha = Float.valueOf(Utils.getParameter(args, "-alpha", "", "0.3333"));
+			float beta = Float.valueOf(Utils.getParameter(args, "-beta", "", "0.3333"));
+			float dIn = Float.valueOf(Utils.getParameter(args, "-dIn", "", "1"));
+			float dOut = Float.valueOf(Utils.getParameter(args, "-dOut", "", "1"));
+			generator = new BollobasGraphGenerator<>(alpha, beta, dIn, dOut, numCouples, random);
 			break;
 
 		default:

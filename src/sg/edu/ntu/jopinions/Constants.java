@@ -19,7 +19,7 @@ public interface Constants {
 	String TOPOLOGY_BARABASI_ALBERT_GRAPH 		= "BAG";//"BarabasiAlbertGraph";
 	String TOPOLOGY_ERDOS_RENYI_GNP_RANDOM_GRAPH= "ERG";//"GnpRandomGraph";
 	String TOPOLOGY_KLEINBERG_SMALL_WORLD_GRAPH	= "KSWG";//"KleinbergSmallWorldGraph";
-	
+	String BOLLOBAS_DIRECTED_SCALEFREE_GRAPH	= "DSFG";//"BollobasGraphGenerator";
 	float EPSILON= 1E-1f; //Float.MIN_VALUE;
 
 	String PARAM_STUBBORN = "-stubborn";
