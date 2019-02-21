@@ -287,7 +287,7 @@ public class AnxietyCalculator {
 				}
 			}
 			
-			out.format("step\tid\tlMax\t\tlMin\tsMin/lMax\tsMin/lMin"
+			out.format("step\tid\tlMax\tlMin\tsMin/lMax\tsMin/lMin"
 					+ "\t(sMin+m_v)/(lMin/m_v)\t(sMin+m_v)/(lMax/m_v)"
 					+ "\th(sMin,lMin)\th(sMin,lMax)\th(s^C_*,s^P_*)\tH(sMin,lMin)\tH(sMin,lMax)\tH(s^C_*,s^P_*)"
 					+ "\tH(sMin,lMin)-H(sMin,m_v,lMin)\tH(sMin,lMax)-H(sMin,m_v,lMax)\tH(s^C_*,s^P_*)-H(s^C_*,m_v,s^P_*)"
@@ -302,7 +302,7 @@ public class AnxietyCalculator {
 				PointND pointPj= mobilePulloxPointNDs[j];
 				float m_v = pointCj.getDist(pointPj);
 
-				float sMin = Float.MAX_VALUE, lMin = Float.MAX_VALUE, lMax = Float.MIN_VALUE;
+				float sMin = Float.MAX_VALUE, lMin = Float.MIN_VALUE, lMax = Float.MIN_VALUE;
 				float sC_star = Float.MAX_VALUE, sP_star = Float.MAX_VALUE;
 				for (int i = 0; i < fixedCastorPointNDs.length; i++) {
 					final Measures measures = allMeasures[i][j];
@@ -355,7 +355,7 @@ public class AnxietyCalculator {
 				float anx_scaledIndiff_bestToWorst_withMv2 = calc_H((sMin / m_v), (lMax / m_v));
 				float anx_scaledIndiff_bestToWorst_withMv3 = calc_H((sC_star / m_v), (sP_star / m_v));
 				
-//				out.format("step\tid\tlMax\t\tlMin\tsMin/lMax\tsMin/lMin"
+//				out.format("step\tid\tlMax\tlMin\tsMin/lMax\tsMin/lMin"
 //						+ "\t(sMin+m_v)/(lMin/m_v)\t(sMin+m_v)/(lMax/m_v)"
 //						+ "\th(sMin,lMin)\th(sMin,lMax)\th(s^C_*,s^P_*)\tH(sMin,lMin)\tH(sMin,lMax)\tH(s^C_*,s^P_*)"
 //						+ "\tH(sMin,lMin)-H(sMin,m_v,lMin)\tH(sMin,lMax)-H(sMin,m_v,lMax)\tH(s^C_*,s^P_*)-H(s^C_*,m_v,s^P_*)"
@@ -414,10 +414,15 @@ public class AnxietyCalculator {
 	}
 	
 	public static float calc_H(float p1, float p2) {
+		if(p1 == 0)return calc_H(p2);
+		if(p2 == 0)return calc_H(p1);
 		float piLogPi = (float) ((p1*Math.log(p1)) + (p2*Math.log(p2)));
 		return  - piLogPi;
 	}
 	public static float calc_H(float p1, float p2, float p3) {
+		if(p1 == 0)return calc_H(p2, p3);
+		if(p2 == 0)return calc_H(p1, p3);
+		if(p3 == 0)return calc_H(p1, p2);
 		float piLogPi = (float) ((p1*Math.log(p1)) + (p2*Math.log(p2)) + (p3*Math.log(p3)));
 		return  - piLogPi;
 	}
@@ -425,7 +430,9 @@ public class AnxietyCalculator {
 		double piLogPi = 0;
 		for (int i = 0; i < ps.length; i++) {
 			final float pi = ps[i];
-			piLogPi += (pi*Math.log(pi));
+			if (pi>0) {
+				piLogPi += (pi*Math.log(pi));
+			}
 		}
 		return (float) - piLogPi;
 	}
