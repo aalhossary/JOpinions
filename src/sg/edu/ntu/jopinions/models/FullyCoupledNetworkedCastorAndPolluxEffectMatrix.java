@@ -79,7 +79,7 @@ public class FullyCoupledNetworkedCastorAndPolluxEffectMatrix extends AbstractCo
 					float v1v1DotProduct = PointND.dotProductRawData(vectorV1, vectorV1);
 					
 					if (hasEdgeCC) {
-						//effect of pair (Ci, Pi) on point Pj
+						//effect of pair (Ci, Pi) on point Cj
 						float[] vectorV2 = pointCj.minus(pointPi);
 						//the dot product is |v1| * |v2| * cos (theta)
 						float v1v2DotProduct = PointND.dotProductRawData(vectorV1, vectorV2);
