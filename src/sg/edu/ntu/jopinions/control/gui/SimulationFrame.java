@@ -248,6 +248,7 @@ public class SimulationFrame extends JFrame {
 	}
 
 	private class OpenAction extends AbstractAction {
+		private static final int d_3 = 3;
 		private static final long serialVersionUID = 2368183798042672044L;
 		JFileChooser chooser = new JFileChooser();
 		public OpenAction() {
@@ -256,9 +257,9 @@ public class SimulationFrame extends JFrame {
 		}
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			PointND.PointNDSupplier pointNDSupplier = new PointND.PointNDSupplier(3, Constants.CASTOR);
+			PointND.PointNDSupplier pointNDSupplier = new PointND.PointNDSupplier(d_3, Constants.CASTOR);
 			DefaultDirectedGraph<PointND, DefaultEdge> graphCC = new DefaultDirectedGraph<>(pointNDSupplier, null, false);
-			pointNDSupplier = new PointND.PointNDSupplier(3, Constants.PULLOX);
+			pointNDSupplier = new PointND.PointNDSupplier(d_3, Constants.PULLOX);
 			DefaultDirectedGraph<PointND, DefaultEdge> graphPP = new DefaultDirectedGraph<>(pointNDSupplier, null, false);
 			@SuppressWarnings("unchecked")
 			Graph<PointND, DefaultEdge>[] graphs = (Graph<PointND, DefaultEdge>[]) new Graph[] {graphCC, null, null, graphPP};
@@ -281,8 +282,8 @@ public class SimulationFrame extends JFrame {
 					return;
 				}
 		    	try {
-					GraphsIO.importGraph(Constants.CASTOR, 3, graphCC, fileGG);
-		    		GraphsIO.importGraph(Constants.PULLOX, 3, graphPP, filePP);
+					GraphsIO.importGraph(Constants.CASTOR, d_3, graphCC, fileGG);
+		    		GraphsIO.importGraph(Constants.PULLOX, d_3, graphPP, filePP);
 		    	} catch (ImportException e1) {
 		    		e1.printStackTrace();
 		    	}
@@ -305,7 +306,7 @@ public class SimulationFrame extends JFrame {
 		    	graphPanel.setGraphs(graphs);
 		    	
 		    	File xFile = new File(selectedFolder, String.format("x-%s.log", id));
-		    	parser = new Parser(n, 3, xFile);
+		    	parser = new Parser(n, d_3, xFile);
 		    	states = parser.parse();
 				float[][] stateZero = states[0];
 				
@@ -313,7 +314,7 @@ public class SimulationFrame extends JFrame {
 				System.arraycopy(castorPointNDs, 0, points, 0, n);
 				System.arraycopy(pulloxPointNDs, 0, points, n, n);
 				
-				x = new OpinionsMatrix(3, n, false);
+				x = new OpinionsMatrix(d_3, n, false);
 		    	x.set(points);
 		    	
 		    	maxFrame = states.length-1;
