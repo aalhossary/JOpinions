@@ -20,7 +20,7 @@ import sg.edu.ntu.jopinions.models.Utils;
  * @author Amr
  *
  */
-public class Calculator {
+public class OpennessCalculator {
 
 	/**NOT yet set automatically*/
 	private static final int d_3 = 3;
@@ -47,7 +47,7 @@ public class Calculator {
 		System.arraycopy(temp, 0, args, 0, temp.length);
 		System.arraycopy(id2Args, 0, args, temp.length, id2Args.length);
 		
-		new Calculator().calculate(inFolder, outFile, args);
+		new OpennessCalculator().calculate(inFolder, outFile, args);
 	}
 
 	static float[] parseLogFile(File logFile) {
