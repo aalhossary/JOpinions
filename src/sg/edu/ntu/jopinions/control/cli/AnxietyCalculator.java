@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -38,6 +39,7 @@ public class AnxietyCalculator {
 		File inFolder = new File(inFolderString);
 		String id = inFolder.getName();
 		File outFile = new File(outFolderString,String.format("stat2-%s.csv",id));
+		File summaryFile = new File(outFolderString,String.format("stat2avr-%s.csv",id));
 //		File logFile = new File(outFolderString,String.format("log-%s.log",id));
 //		if(logFile.exists()) {
 //			float[] cimDistances = parseLogFile(logFile);
@@ -50,53 +52,18 @@ public class AnxietyCalculator {
 		System.arraycopy(temp, 0, args, 0, temp.length);
 		System.arraycopy(id2Args, 0, args, temp.length, id2Args.length);
 		
-		new AnxietyCalculator().calculate(inFolder, outFile, args);
+		new AnxietyCalculator().calculate(inFolder, outFile, summaryFile, args);
 	}
 
-	static float[] parseLogFile(File logFile) {
-		Pattern pattern = Pattern.compile("Step\\s?=\\s?([0-9]+), Total Diff\\s?=\\s?([-eE.0-9]+), Converged\\s?=\\s?(true|false)");
-		Matcher matcher = pattern.matcher("");
-		
-		ArrayList<Float> temp = new ArrayList<>();
-		int lastStep = 0, stepId = -1;
-//		Scanner scanner;
-		try (Scanner scanner = new Scanner(logFile)) {
-			while (scanner.hasNextLine()) {
-				String line = scanner.nextLine();
-				if (line.length()== 0 || line.startsWith("#")) {
-					continue;
-				}
-				matcher.reset(line);
-				if (matcher.matches()) {
-					stepId = Integer.valueOf(matcher.group(1));
-					if(stepId != lastStep+1)
-						return null;
-					Float dist = Float.valueOf(matcher.group(2));
-					temp.add(dist);
-					lastStep=stepId;
-				}
-			}
-//			scanner.close();
-		} catch (FileNotFoundException e) {
-			return null;
-		}
-
-		float[] ret = new float[temp.size()+1];
-		ret[0]= -1; //some impossible value
-		for (int i = 1; i < ret.length; i++) {
-			ret[i]= temp.get(i-1); //rest of the values
-		}
-		return ret;
-	}
-
-	private void calculate(File inFolder, File outFile, String[] args) {
-		PrintStream out = null;
+	private void calculate(File inFolder, File outFile, File summaryFile, String[] args) {
+		PrintStream out = null, summary = null;
 		try {
 			out = new PrintStream(outFile);
+			summary = new PrintStream(summaryFile);
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
-		if (out == null) {
+		if (out == null || summary == null) {
 			System.exit(-5);//any nonzero number
 		}
 //		String floatAndDelimeter = Defaults.OUTPUT_FORMAT+"\t";
@@ -115,7 +82,7 @@ public class AnxietyCalculator {
 //		File logFile = new File(inFolder, String.format("log-%s.log",id));
 		File fileGG = new File(inFolder, String.format("gg-%s.log", id));
 		File filePP = new File(inFolder, String.format("pp-%s.log", id));
-    	File xFile  = new File(inFolder, String.format("x-%s.log", inFolder.getName()));
+    	File xFile  = new File(inFolder, String.format("x-%s.log", id));
 
 		PointND.PointNDSupplier pointNDSupplier = new PointND.PointNDSupplier(d_3, Constants.CASTOR);
 		DefaultDirectedGraph<PointND, DefaultEdge> graphCC = new DefaultDirectedGraph<>(pointNDSupplier, null, false);
@@ -295,6 +262,8 @@ public class AnxietyCalculator {
 					+ "\tH((sMin/(sMin+m_v+lMin)),(lMin/(sMin+m_v+lMin)))\tH((sMin/(sMin+m_v+lMax)),(lMax/(sMin+m_v+lMax)))\tH((s^C_*/(s^C_*,m_v,s^P_*)),(s^P_*/(s^C_*,m_v,s^P_*)))"
 					+ "\tH((sMin/m_v),(lMin/m_v))\tH((sMin/m_v),(lMax/m_v))\tH((s^C_*/m_v),(s^P_*/m_v))"
 					+ "\n");
+			
+			float[][] allValues = new float [24][mobileCastorPointNDs.length];
 
 			//now start calculating real measures. Let the fun begin
 			for (int j = 0; j < mobileCastorPointNDs.length; j++) {
@@ -323,38 +292,49 @@ public class AnxietyCalculator {
 						sP_star = tempPC_star;
 				}
 				
-				float anx_distToWorst1 = lMax;
-				float anx_distToWorst2 = lMin;
+				float distToWorst1 = lMax;
+				float distToWorst2 = lMin;
 
-				float anx_bestToWorst1 = sMin / lMax;
-				float anx_bestToWorst2 = sMin / lMin;
+				float bestToWorst1 = sMin / lMax;
+				float bestToWorst2 = sMin / lMin;
 				
-				float anx_bestToWorst_withSize1 = (sMin+m_v) / (lMin + m_v);
-				float anx_bestToWorst_withSize2 = (sMin+m_v) / (lMax + m_v);
-				
-				float anx_relIndiff_bestToWorst1 = calc_h(sMin, lMin);
-				float anx_relIndiff_bestToWorst2 = calc_h(sMin, lMax);
-				float anx_relIndiff_bestToWorst3 = calc_h(sC_star, sP_star);
-				float anx_relIndiff_bestToWorst4 = calc_H(sMin, lMin);
-				float anx_relIndiff_bestToWorst5 = calc_H(sMin, lMax);
-				float anx_relIndiff_bestToWorst6 = calc_H(sC_star, sP_star);
+				float bestToWorst_withSize1 = (sMin+m_v) / (lMin + m_v);
+				float bestToWorst_withSize2 = (sMin+m_v) / (lMax + m_v);
 
-				float anx_Difference_relIndiff_bestToWorst_becauseOfMv1 = calc_H(sMin, lMin) - calc_H(sMin, m_v, lMin);
-				float anx_Difference_relIndiff_bestToWorst_becauseOfMv2 = calc_H(sMin, lMax) - calc_H(sMin, m_v, lMax);
-				float anx_Difference_relIndiff_bestToWorst_becauseOfMv3 = calc_H(sC_star, sP_star) - calc_H(sC_star, m_v, sP_star);
+				float relIndiff_bestToWorst1 = calc_h(sMin, lMin);
+				float relIndiff_bestToWorst2 = calc_h(sMin, lMax);
+				float relIndiff_bestToWorst3 = calc_h(sC_star, sP_star);
+				float relIndiff_bestToWorst4 = calc_H(sMin, lMin);
+				float relIndiff_bestToWorst5 = calc_H(sMin, lMax);
+				float relIndiff_bestToWorst6 = calc_H(sC_star, sP_star);
 
-				float anx_relIndiff_bestToWorst_withMv1 = calc_h(sMin, m_v, lMin);
-				float anx_relIndiff_bestToWorst_withMv2 = calc_h(sMin, m_v, lMax);
-				float anx_relIndiff_bestToWorst_withMv3 = calc_h(sC_star, m_v, sP_star);
+				float difference_relIndiff_bestToWorst_becauseOfMv1 = calc_H(sMin, lMin) - calc_H(sMin, m_v, lMin);
+				float difference_relIndiff_bestToWorst_becauseOfMv2 = calc_H(sMin, lMax) - calc_H(sMin, m_v, lMax);
+				float difference_relIndiff_bestToWorst_becauseOfMv3 = calc_H(sC_star, sP_star) - calc_H(sC_star, m_v, sP_star);
 
-				float anx_superNormalizedIndiff_bestToWorst1 = calc_H((sMin / (sMin + lMin + m_v)), (lMin / (sMin + lMin + m_v)));
-				float anx_superNormalizedIndiff_bestToWorst2 = calc_H((sMin / (sMin + lMax + m_v)), (lMax / (sMin + lMax + m_v)));
-				float anx_superNormalizedIndiff_bestToWorst3 = calc_H((sC_star / (sC_star + sP_star + m_v)), (sP_star / (sC_star + sP_star + m_v)));
+				float relIndiff_bestToWorst_withMv1 = calc_h(sMin, m_v, lMin);
+				float relIndiff_bestToWorst_withMv2 = calc_h(sMin, m_v, lMax);
+				float relIndiff_bestToWorst_withMv3 = calc_h(sC_star, m_v, sP_star);
 
-				float anx_scaledIndiff_bestToWorst_withMv1 = calc_H((sMin / m_v), (lMin / m_v));
-				float anx_scaledIndiff_bestToWorst_withMv2 = calc_H((sMin / m_v), (lMax / m_v));
-				float anx_scaledIndiff_bestToWorst_withMv3 = calc_H((sC_star / m_v), (sP_star / m_v));
-				
+				float superNormalizedIndiff_bestToWorst1 = calc_H((sMin / (sMin + lMin + m_v)), (lMin / (sMin + lMin + m_v)));
+				float superNormalizedIndiff_bestToWorst2 = calc_H((sMin / (sMin + lMax + m_v)), (lMax / (sMin + lMax + m_v)));
+				float superNormalizedIndiff_bestToWorst3 = calc_H((sC_star / (sC_star + sP_star + m_v)), (sP_star / (sC_star + sP_star + m_v)));
+
+				float scaledIndiff_bestToWorst_withMv1 = calc_H((sMin / m_v), (lMin / m_v));
+				float scaledIndiff_bestToWorst_withMv2 = calc_H((sMin / m_v), (lMax / m_v));
+				float scaledIndiff_bestToWorst_withMv3 = calc_H((sC_star / m_v), (sP_star / m_v));
+
+				allValues[0][j]=distToWorst1; allValues[1][j]=distToWorst2; 
+				allValues[2][j]=bestToWorst1;allValues[3][j]=bestToWorst2;
+				allValues[4][j]=bestToWorst_withSize1;allValues[5][j]=bestToWorst_withSize2;
+
+				allValues[6][j]=relIndiff_bestToWorst1;allValues[7][j]=relIndiff_bestToWorst2;allValues[8][j]=relIndiff_bestToWorst3;
+				allValues[9][j]=relIndiff_bestToWorst4;allValues[10][j]=relIndiff_bestToWorst5;allValues[11][j]=relIndiff_bestToWorst6;
+				allValues[12][j]=difference_relIndiff_bestToWorst_becauseOfMv1;allValues[13][j]=difference_relIndiff_bestToWorst_becauseOfMv2;allValues[14][j]=difference_relIndiff_bestToWorst_becauseOfMv3;
+				allValues[15][j]=relIndiff_bestToWorst_withMv1;allValues[16][j]=relIndiff_bestToWorst_withMv2;allValues[17][j]=relIndiff_bestToWorst_withMv3;
+				allValues[18][j]=superNormalizedIndiff_bestToWorst1;allValues[19][j]=superNormalizedIndiff_bestToWorst2;allValues[20][j]=superNormalizedIndiff_bestToWorst3;
+				allValues[21][j]=scaledIndiff_bestToWorst_withMv1;allValues[22][j]=scaledIndiff_bestToWorst_withMv2;allValues[23][j]=scaledIndiff_bestToWorst_withMv3;
+
 //				out.format("step\tid\tlMax\tlMin\tsMin/lMax\tsMin/lMin"
 //						+ "\t(sMin+m_v)/(lMin/m_v)\t(sMin+m_v)/(lMax/m_v)"
 //						+ "\th(sMin,lMin)\th(sMin,lMax)\th(s^C_*,s^P_*)\tH(sMin,lMin)\tH(sMin,lMax)\tH(s^C_*,s^P_*)"
@@ -366,45 +346,76 @@ public class AnxietyCalculator {
 				// start output
 				out.format("%d\t",step);
 				out.format("%d\t", mobileCastorPointNDs[j].getId());//TODO if it doesn't work, change it to j and call it "relative order among mobile vertices"
-				out.format(floatAndDelimeter, anx_distToWorst1);
-				out.format(floatAndDelimeter, anx_distToWorst2);
+				out.format(floatAndDelimeter, distToWorst1);
+				out.format(floatAndDelimeter, distToWorst2);
 
-				out.format(floatAndDelimeter, anx_bestToWorst1);
-				out.format(floatAndDelimeter, anx_bestToWorst2);
+				out.format(floatAndDelimeter, bestToWorst1);
+				out.format(floatAndDelimeter, bestToWorst2);
 				
-				out.format(floatAndDelimeter, anx_bestToWorst_withSize1);
-				out.format(floatAndDelimeter, anx_bestToWorst_withSize2);
+				out.format(floatAndDelimeter, bestToWorst_withSize1);
+				out.format(floatAndDelimeter, bestToWorst_withSize2);
 
-				out.format(floatAndDelimeter, anx_relIndiff_bestToWorst1);
-				out.format(floatAndDelimeter, anx_relIndiff_bestToWorst2);
-				out.format(floatAndDelimeter, anx_relIndiff_bestToWorst3);
-				out.format(floatAndDelimeter, anx_relIndiff_bestToWorst4);
-				out.format(floatAndDelimeter, anx_relIndiff_bestToWorst5);
-				out.format(floatAndDelimeter, anx_relIndiff_bestToWorst6);
+				out.format(floatAndDelimeter, relIndiff_bestToWorst1);
+				out.format(floatAndDelimeter, relIndiff_bestToWorst2);
+				out.format(floatAndDelimeter, relIndiff_bestToWorst3);
+				out.format(floatAndDelimeter, relIndiff_bestToWorst4);
+				out.format(floatAndDelimeter, relIndiff_bestToWorst5);
+				out.format(floatAndDelimeter, relIndiff_bestToWorst6);
 				
-				out.format(floatAndDelimeter, anx_Difference_relIndiff_bestToWorst_becauseOfMv1);
-				out.format(floatAndDelimeter, anx_Difference_relIndiff_bestToWorst_becauseOfMv2);
-				out.format(floatAndDelimeter, anx_Difference_relIndiff_bestToWorst_becauseOfMv3);
+				out.format(floatAndDelimeter, difference_relIndiff_bestToWorst_becauseOfMv1);
+				out.format(floatAndDelimeter, difference_relIndiff_bestToWorst_becauseOfMv2);
+				out.format(floatAndDelimeter, difference_relIndiff_bestToWorst_becauseOfMv3);
 
-				out.format(floatAndDelimeter, anx_relIndiff_bestToWorst_withMv1);
-				out.format(floatAndDelimeter, anx_relIndiff_bestToWorst_withMv2);
-				out.format(floatAndDelimeter, anx_relIndiff_bestToWorst_withMv3);
+				out.format(floatAndDelimeter, relIndiff_bestToWorst_withMv1);
+				out.format(floatAndDelimeter, relIndiff_bestToWorst_withMv2);
+				out.format(floatAndDelimeter, relIndiff_bestToWorst_withMv3);
 				
-				out.format(floatAndDelimeter, anx_superNormalizedIndiff_bestToWorst1);
-				out.format(floatAndDelimeter, anx_superNormalizedIndiff_bestToWorst2);
-				out.format(floatAndDelimeter, anx_superNormalizedIndiff_bestToWorst3);
+				out.format(floatAndDelimeter, superNormalizedIndiff_bestToWorst1);
+				out.format(floatAndDelimeter, superNormalizedIndiff_bestToWorst2);
+				out.format(floatAndDelimeter, superNormalizedIndiff_bestToWorst3);
 				
-				out.format(floatAndDelimeter, anx_scaledIndiff_bestToWorst_withMv1);
-				out.format(floatAndDelimeter, anx_scaledIndiff_bestToWorst_withMv2);
-				out.format(floatAndDelimeter, anx_scaledIndiff_bestToWorst_withMv3);
+				out.format(floatAndDelimeter, scaledIndiff_bestToWorst_withMv1);
+				out.format(floatAndDelimeter, scaledIndiff_bestToWorst_withMv2);
+				out.format(floatAndDelimeter, scaledIndiff_bestToWorst_withMv3);
 //				out.format(floatAndDelimeter, );
 //				out.format("%B\t", cIM);
 				out.format("\n");
 			}
+			
+			float[] averages = calcAverages(allValues, 3);
+//			if (verbose) {
+//				System.out.println(Arrays.toString(averages));
+//			}
+			summary.format("%d\t",step);
+			summary.format("avr\t");//place holder for id. Just for consistency
+			for (int i = 0; i < averages.length; i++) {
+				summary.format(floatAndDelimeter, averages[i]);
+			}
+			summary.format("\n");
 		}
 		
 		System.out.println("All done!");
-		out.close();//TODO make sure you don't block any future writes
+		out.close();
+	}
+
+	public static float[] calcAverages(float[][] values, float removePercentOutliers) {
+		float[] ret = new float[values.length];
+		for (int i = 0; i < ret.length; i++) {
+			final float[] currentList = values[i];
+			Arrays.sort(currentList);
+			int lowIndex=0,highIndex=currentList.length - 1;
+			while(currentList[lowIndex] == Float.NEGATIVE_INFINITY) lowIndex++;
+			while(currentList[highIndex] == Float.POSITIVE_INFINITY) highIndex--;
+			int effectiveLength = highIndex - lowIndex + 1;
+			int halfOutliersToRemove = (int) (removePercentOutliers * effectiveLength / 100 / 2);
+			float sum = 0;
+			for (int j = lowIndex + halfOutliersToRemove; j < highIndex - halfOutliersToRemove; j++) {
+				sum += currentList[j];
+			}
+			sum /= effectiveLength - 2 *  halfOutliersToRemove;
+			ret[i]= sum;
+		}
+		return ret;
 	}
 
 	private static class Measures{

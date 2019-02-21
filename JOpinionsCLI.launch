@@ -6,10 +6,10 @@
     <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
         <listEntry value="1"/>
     </listAttribute>
-    <stringAttribute key="org.eclipse.debug.ui.ATTR_CAPTURE_IN_FILE" value="${project_path}/out.log"/>
+    <stringAttribute key="org.eclipse.debug.ui.ATTR_CAPTURE_IN_FILE" value="${workspace_loc:/JOpinions/out.log}"/>
     <booleanAttribute key="org.eclipse.jdt.launching.ATTR_EXCLUDE_TEST_CODE" value="true"/>
     <booleanAttribute key="org.eclipse.jdt.launching.ATTR_USE_CLASSPATH_ONLY_JAR" value="false"/>
     <stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="sg.edu.ntu.jopinions.control.cli.JOpinionsCLI"/>
-    <stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="-seed 123456789 &#13;&#10;-#demo &#13;&#10;-v false &#13;&#10;-#flip &#13;&#10;-dt 0.0 &#13;&#10;-showGUI &#13;&#10;-numCouples 400 &#13;&#13;&#10;-stubborn 0.05 &#13;&#10;-manageStubborn polarizeCouple 0.1 polarizeSingle 0.2 none &#13;&#10;-model CONCAP-Beta ICAP INCAP CONCAP-Phi FCONCAP &#13;&#10;-phi 0.5 &#13;&#13;&#10;-beta 0.75 &#13;&#10;-topology DSFG BAG ERG KSWG WSG&#13;&#10;-alpha 0.333&#13;&#10;-gamma 0.333&#13;&#10;-id test1 &#13;&#10;-outFolder ./ -effectsMatrix false"/>
+    <stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="-seed 123456789 &#13;&#10;-#demo &#13;&#10;-v false &#13;&#10;-#flip &#13;&#10;-dt 0.0 &#13;&#10;-showGUI &#13;&#10;-numCouples 400 &#13;&#13;&#10;-stubborn 0.05 &#13;&#10;-manageStubborn polarizeCouple 0.1 polarizeSingle 0.2 none &#13;&#10;-model CONCAP-Beta ICAP INCAP CONCAP-Phi FCONCAP &#13;&#10;-phi 0.5 &#13;&#13;&#10;-beta 0.75 &#13;&#10;-topology BAG ERG KSWG WSG DSFG &#13;&#10;-alpha 0.333&#13;&#10;-gamma 0.333&#13;&#10;-id test1 &#13;&#10;-outFolder ./ &#13;&#10;-effectsMatrix false"/>
     <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="JOpinions"/>
 </launchConfiguration>
