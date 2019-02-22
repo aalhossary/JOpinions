@@ -255,7 +255,7 @@ public class AnxietyCalculator {
 			}
 			
 			out.format("step\tid\tlMax\tlMin\tsMin/lMax\tsMin/lMin"
-					+ "\t(sMin+m_v)/(lMin/m_v)\t(sMin+m_v)/(lMax/m_v)"
+					+ "\t(sMin+m_v)/(lMin+m_v)\t(sMin+m_v)/(lMax+m_v)"
 					+ "\th(sMin,lMin)\th(sMin,lMax)\th(s^C_*,s^P_*)\tH(sMin,lMin)\tH(sMin,lMax)\tH(s^C_*,s^P_*)"
 					+ "\tH(sMin,lMin)-H(sMin,m_v,lMin)\tH(sMin,lMax)-H(sMin,m_v,lMax)\tH(s^C_*,s^P_*)-H(s^C_*,m_v,s^P_*)"
 					+ "\th(sMin,m_v,lMin)\th(sMin,m_v,lMax)\th(s^C_*,m_v,s^P_*)"
