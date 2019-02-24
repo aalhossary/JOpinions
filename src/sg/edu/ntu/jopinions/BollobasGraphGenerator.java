@@ -49,9 +49,15 @@ public class BollobasGraphGenerator<V, E>
 //     * existing vertex w, where v and w are chosen independently, v 
 //     * according to d_out + delta_out, and w according to d_in + delta_in.*/
 //    private final float beta;
-    /**probability that the new edge is from an existing vertex v to a new vertex w, 
-     * where v is chosen according to d_out + delta_out.*/
-    private final float gamma;
+//    /**probability that the new edge is from an existing vertex v to a new vertex w, 
+//     * where v is chosen according to d_out + delta_out.*/
+//    private final float gamma;
+    /**probability that the new edge is (from a new vertex v to an existing vertex w)
+     * plus the probability that the new edge is (from an existing vertex v to an
+    * existing vertex w), where v and w are chosen independently, v 
+    * according to d_out + delta_out, and w according to d_in + delta_in.<br>
+    * This is called gamma. which refers to the probability that the new edge is 
+    * from an existing vertex v to a new vertex w. */
     final float alphaPlusBeta;
     
     /**Bias used for Alpha and Beta*/
@@ -71,7 +77,7 @@ public class BollobasGraphGenerator<V, E>
     
     public BollobasGraphGenerator(float alpha, float gamma, float dIn, float dOut, int n, Random rng){
     	this.alpha = alpha;
-    	this.gamma = gamma;
+//    	this.gamma = gamma;
     	this.alphaPlusBeta = 1.0f - gamma;
     	this.dIn = dIn;
     	this.dOut = dOut;
@@ -94,7 +100,7 @@ public class BollobasGraphGenerator<V, E>
         List<V> nodesInDegrees  = new ArrayList<>();
         List<V> nodesOutDegrees = new ArrayList<>();
         
-        Set<V> oldNodes = new HashSet<>(target.vertexSet());
+//        Set<V> oldNodes = new HashSet<>(target.vertexSet());
         Set<V> newNodes = new HashSet<>();
         List<V> nodes = new ArrayList<>();
 
