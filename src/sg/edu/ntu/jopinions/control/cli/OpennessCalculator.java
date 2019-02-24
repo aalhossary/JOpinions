@@ -22,6 +22,7 @@ import sg.edu.ntu.jopinions.models.Utils;
  */
 public class OpennessCalculator {
 
+	public static final String HEADER = "step\tmeanO\tmedianO\tmaxO\tCIMDist\tCIM\tCTCDist";
 	/**NOT yet set automatically*/
 	private static final int d_3 = 3;
 	File inputFile = null;
@@ -99,7 +100,8 @@ public class OpennessCalculator {
 		}
 //		String floatAndDelimeter = Defaults.OUTPUT_FORMAT+"\t";
 		String floatAndDelimeter = "%8.5E\t";
-		out.format("step\tmeanO\tmedianO\tmaxO\tCIMDist\tCIM\tCTCDist\n");
+		out.print(OpennessCalculator.HEADER);
+		out.print("\n");
 		
     	int n = Integer.valueOf(Utils.getParameter(args, "-numCouples", "-1", "400"));
     	float[][] prevState = new float[2*n][d_3];

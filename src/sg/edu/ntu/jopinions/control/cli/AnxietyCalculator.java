@@ -8,9 +8,6 @@ import java.io.FileNotFoundException;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Scanner;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
@@ -26,6 +23,14 @@ import sg.edu.ntu.jopinions.models.Utils;
  */
 public class AnxietyCalculator {
 
+	//TODO call it "pair ID for disambiguaty"
+	public static final String HEADER = "step\tid\tlMax\tlMin\tsMin/lMax\tsMin/lMin"
+			+ "\t(sMin+m_v)/(lMin+m_v)\t(sMin+m_v)/(lMax+m_v)"
+			+ "\th(sMin,lMin)\th(sMin,lMax)\th(s^C_*,s^P_*)\tH(sMin,lMin)\tH(sMin,lMax)\tH(s^C_*,s^P_*)"
+			+ "\tH(sMin,lMin)-H(sMin,m_v,lMin)\tH(sMin,lMax)-H(sMin,m_v,lMax)\tH(s^C_*,s^P_*)-H(s^C_*,m_v,s^P_*)"
+			+ "\th(sMin,m_v,lMin)\th(sMin,m_v,lMax)\th(s^C_*,m_v,s^P_*)"
+			+ "\tH((sMin/(sMin+m_v+lMin)),(lMin/(sMin+m_v+lMin)))\tH((sMin/(sMin+m_v+lMax)),(lMax/(sMin+m_v+lMax)))\tH((s^C_*/(s^C_*,m_v,s^P_*)),(s^P_*/(s^C_*,m_v,s^P_*)))"
+			+ "\tH((sMin/m_v),(lMin/m_v))\tH((sMin/m_v),(lMax/m_v))\tH((s^C_*/m_v),(s^P_*/m_v))";
 	/**NOT yet set automatically*/
 	private static final int d_3 = 3;
 	File inputFile = null;
@@ -254,14 +259,8 @@ public class AnxietyCalculator {
 				}
 			}
 			
-			out.format("step\tid\tlMax\tlMin\tsMin/lMax\tsMin/lMin"
-					+ "\t(sMin+m_v)/(lMin+m_v)\t(sMin+m_v)/(lMax+m_v)"
-					+ "\th(sMin,lMin)\th(sMin,lMax)\th(s^C_*,s^P_*)\tH(sMin,lMin)\tH(sMin,lMax)\tH(s^C_*,s^P_*)"
-					+ "\tH(sMin,lMin)-H(sMin,m_v,lMin)\tH(sMin,lMax)-H(sMin,m_v,lMax)\tH(s^C_*,s^P_*)-H(s^C_*,m_v,s^P_*)"
-					+ "\th(sMin,m_v,lMin)\th(sMin,m_v,lMax)\th(s^C_*,m_v,s^P_*)"
-					+ "\tH((sMin/(sMin+m_v+lMin)),(lMin/(sMin+m_v+lMin)))\tH((sMin/(sMin+m_v+lMax)),(lMax/(sMin+m_v+lMax)))\tH((s^C_*/(s^C_*,m_v,s^P_*)),(s^P_*/(s^C_*,m_v,s^P_*)))"
-					+ "\tH((sMin/m_v),(lMin/m_v))\tH((sMin/m_v),(lMax/m_v))\tH((s^C_*/m_v),(s^P_*/m_v))"
-					+ "\n");
+			out.print(AnxietyCalculator.HEADER);
+			out.println("\n");
 			
 			float[][] allValues = new float [24][mobileCastorPointNDs.length];
 
