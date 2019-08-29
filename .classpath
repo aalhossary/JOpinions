@@ -6,8 +6,8 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="lib" path="lib/jgrapht-core-1.3.0.jar"/>
-	<classpathentry kind="lib" path="lib/jgrapht-io-1.3.0.jar" sourcepath="C:/Sources/Java/jgrapht-1.3.0/source/jgrapht-io/src/main"/>
-	<classpathentry kind="lib" path="lib/antlr4-runtime-4.7.1.jar"/>
+	<classpathentry kind="lib" path="lib/jgrapht-core-1.3.1.jar"/>
+	<classpathentry kind="lib" path="lib/jgrapht-io-1.3.1.jar"/>
+	<classpathentry kind="lib" path="lib/antlr4-runtime-4.7.2.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
