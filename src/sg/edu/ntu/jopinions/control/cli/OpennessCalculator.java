@@ -12,6 +12,7 @@ import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import sg.edu.ntu.jopinions.Constants;
 import sg.edu.ntu.jopinions.Defaults;
 import sg.edu.ntu.jopinions.models.PointND;
 import sg.edu.ntu.jopinions.models.Utils;
@@ -22,7 +23,7 @@ import sg.edu.ntu.jopinions.models.Utils;
  */
 public class OpennessCalculator {
 
-	public static final String HEADER = "step\tmeanO\tmedianO\tmaxO\tCIMDist\tCIM\tCTCDist";
+	public static final String HEADER = "step\tmeanO\tmedianO\tmaxO\tCIMDist\tCIM\tCTCDist\tPole1#\tPole2#\tBoth Poles";
 	/**NOT yet set automatically*/
 	private static final int d_3 = 3;
 	File inputFile = null;
@@ -122,6 +123,53 @@ public class OpennessCalculator {
 		Parser parser = new Parser(n, d_3, xFile);
 		float[][][] states = parser.parse();
 		System.out.println("finished reading input files");
+		
+		
+		//==============Prepare for polarity Calculation start =====================
+		String[] manageStubbornValues = Utils.getParameters(args, Constants.PARAM_MANAGE_STUBBORN, (String[])null, new String[]{Constants.NONE});
+		float nu=Defaults.NU;//non legal value
+		if (manageStubbornValues == null) {
+			throw new IllegalArgumentException("If parameter " + Constants.PARAM_MANAGE_STUBBORN + " is introduced, it must be given a value.");
+		} else {
+			String command = manageStubbornValues[0];//there is at least {"none"}
+			if (command.equals(Constants.NONE)) {
+				nu = 2.0f;
+				System.err.println("Warning: Defaulting to No polarization");
+			} else if (command.equals(Constants.POLARIZE_COUPLE) || command.equals(Constants.POLARIZE_SINGLE)) {
+				try { nu = Float.valueOf(manageStubbornValues[1]); } catch (Exception e) {
+					System.err.println("Could not parse nu value. Defaulting to No polarization");
+				}
+			} else {
+				throw new IllegalArgumentException("Unknown stubborn management command " + command);
+			}
+		}
+		
+		PointND vec_001_100 = new PointND("VEC", PointND.minusRawData(new float[]{1,0,0}, new float[]{0,0,1}), -1);
+		PointND vec_001_010 = new PointND("VEC", PointND.minusRawData(new float[]{0,1,0}, new float[]{0,0,1}), -1);
+		PointND planeNormPositive = new PointND("VEC", PointND.crossProductRawData(vec_001_100.getX_i(), vec_001_010.getX_i()), -1);
+//		System.out.println(vec_001_100);
+//		System.out.println(vec_001_010);
+//		System.out.println(planeNormPositive);
+		
+//		System.out.println("Nu from input= "+nu);
+//		nu=0.999f;//(float) Math.sqrt(2);//1.0f;//TODO remove this test line
+//		System.out.println("Nu hardcoded = "+nu);
+		
+		PointND point001ScaledToC = new PointND("REF", new float[] {0,0,1}, -1);
+		JOpinionsCLI.moveToPole(point001ScaledToC, true, nu);
+		PointND point010ScaledToC = new PointND("REF", new float[] {0,1,0}, -1);
+		JOpinionsCLI.moveToPole(point010ScaledToC, true, nu);
+		PointND boundaryVecC1 = new PointND("VEC", point010ScaledToC.minus(point001ScaledToC), -1);
+		
+		PointND point010ScaledToP = new PointND("REF", new float[] {0,1,0}, -1);
+		JOpinionsCLI.moveToPole(point010ScaledToP, false, nu);
+		PointND point100ScaledToP = new PointND("REF", new float[] {1,0,0}, -1);
+		JOpinionsCLI.moveToPole(point100ScaledToP, false, nu);
+		PointND point001ScaledToP = new PointND("REF", new float[] {0,0,1}, -1);
+		JOpinionsCLI.moveToPole(point001ScaledToP, false, nu);
+		PointND boundaryVecP2 = new PointND("VEC", point010ScaledToP.minus(point100ScaledToP), -1);
+		PointND boundaryVecP3 = new PointND("VEC", point001ScaledToP.minus(point100ScaledToP), -1);
+		//==============Prepare for polarity Calculation End =====================
 
 		boolean cIM;
 		//now start calculations
@@ -208,7 +256,32 @@ public class OpennessCalculator {
 			mO /= n;
 			//use eO, mO, maxO
 			//========= Openness End =======================
-			
+
+			// ================ Polar count start ===============================
+			int castorPoleCount = 0, polluxPoleCount = 0;
+			for (int j = 0; j < currentState.length; j++) {
+				float[] queryPointRawData = currentState[j];
+//				queryPointRawData = new float[] {0.5f, 0.25f, 0.25f}; //TODO remove this test line
+				
+				float sideC1 = PointND.side(boundaryVecC1, point001ScaledToC, queryPointRawData, planeNormPositive);
+				if(sideC1 <= 0)
+					castorPoleCount++;
+				
+				float[] queryVectorPoint100ScaledToP_queryPoint_RawData = PointND.minusRawData(queryPointRawData, point100ScaledToP.getX_i());
+				float sideP2 = PointND.side(boundaryVecP2, queryVectorPoint100ScaledToP_queryPoint_RawData, planeNormPositive);
+				float sideP3 = PointND.side(boundaryVecP3, queryVectorPoint100ScaledToP_queryPoint_RawData, planeNormPositive);
+				if(sideP2 >= 0 && sideP3 <= 0)
+					polluxPoleCount++;
+
+//				System.out.println(nu);
+//				System.out.println(sideC1);
+//				System.out.println(sideP2);
+//				System.out.println(sideP3);
+//				System.out.format("%d, %d", castorPoleCount, polluxPoleCount);
+//				System.exit(0);//TODO remove this test line
+			}
+			// ================ Polar count End ===============================
+
 			// start output
 //			out.format(Defaults.OUTPUT_FORMAT, data);
 			out.format("%d\t",i);
@@ -219,6 +292,10 @@ public class OpennessCalculator {
 			out.format(floatAndDelimeter, cimMaxDist);
 			out.format("%B\t", cIM);
 			out.format(floatAndDelimeter, ctcMaxDist);
+
+			out.format("%d\t", castorPoleCount);
+			out.format("%d\t", polluxPoleCount);
+			out.format("%d", castorPoleCount+polluxPoleCount);//NO extra \t at the end
 			out.format("\n");
 		}
 	}

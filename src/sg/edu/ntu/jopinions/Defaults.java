@@ -35,6 +35,6 @@ public interface Defaults extends Constants {
 	float RHO = 0.05f;
 	
 	/** value[0.0, 1.0] to determine the polar area size. If \nu = 1, they would touch each other. */
-	float NU = 0.001f;
+	float NU = 2.0f;
 
 }

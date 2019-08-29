@@ -149,6 +149,38 @@ public class PointND {
 		return ret;
 	}
 	
+	public static float[] crossProductRawData(float[] e1, float[] e2) {
+		if(e1.length != 3)
+			throw new UnsupportedOperationException("Number of Dimension not yet implemented");
+		float[] ret = {0.0f, 0.0f, 0.0f};
+		ret[0] = (e1[1] * e2[2]) - (e1[2] * e2[1]);
+		ret[1] = (e1[2] * e2[0]) - (e1[0] * e2[2]);
+		ret[2] = (e1[0] * e2[1]) - (e1[1] * e2[0]);
+		return ret;
+	}
+	
+	/**returns a <code>positive</code> value if the cross product is to the same side as the reference
+	 * positive norm vector (i.e. the angle between the reference vector and the query vector clock wise,
+	 * a <code>negative</code> value if on the other side, <code>zero</code> if on the boundary vector itself;
+	 * @param refVector
+	 * @param refVectorTail 
+	 * @param queryPoint
+	 * @param refPositiveSide
+	 * @return
+	 */
+	public static float side(PointND refVector, PointND refVectorTail, float[] queryPoint, PointND refPositiveSide) {
+		float[] queryVector = PointND.minusRawData(queryPoint, refVectorTail.x);
+		float[] crossProductRawData = crossProductRawData(refVector.getX_i(), queryVector);
+		return dotProductRawData(crossProductRawData, refPositiveSide.getX_i());
+	}
+	
+	public static float side(PointND refVector, float[] queryVectorRawData, PointND refPositiveSide) {
+		float[] crossProductRawData = crossProductRawData(refVector.getX_i(), queryVectorRawData);
+		return dotProductRawData(crossProductRawData, refPositiveSide.getX_i());
+	}
+	
+	
+	
 	public String getName() {
 		return name;
 	}

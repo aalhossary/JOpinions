@@ -39,8 +39,8 @@ public class AnxietyCalculator {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		String inFolderString = Utils.getParameter(args, "-inFolder", null, null);
-		String outFolderString = Utils.getParameter(args, "-outFolder", null, "./");
+		String inFolderString = Utils.getParameter(args, Constants.PARAM_IN_FOLDER, null, null);
+		String outFolderString = Utils.getParameter(args, Constants.PARAM_OUT_FOLDER, null, "./");
 		File inFolder = new File(inFolderString);
 		String id = inFolder.getName();
 		File outFile = new File(outFolderString,String.format("stat2-%s.csv",id));

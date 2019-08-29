@@ -207,6 +207,14 @@ public class JOpinionsCLI {
 		}
 	}
 
+	/**
+	 * One potential bug in this implementation is that the pair would go to an
+	 * arbitrary pole regardless to the place where they were originally in.
+	 * @param graph
+	 * @param x
+	 * @param nu
+	 * @param random
+	 */
 	private static void polarizeCouple(Graph<PointND, DefaultEdge> graph, OpinionsMatrix x, float nu, Random random) {
 		Iterator<PointND> subjectPointsIterator = graph.vertexSet().stream()
 				.filter(vertex -> vertex.getInDegree() == 1).iterator();
@@ -247,12 +255,12 @@ public class JOpinionsCLI {
 //		point.matchValues(PointND.plusRawData(point.getX_i(),translation));
 //		point.normalize();
 //	}
-	/**
+	/**Note that this method <i>modifies</i> the passed in point.
 	 * @param point the point to polarize
 	 * @param firstPool if <code>true</code>, go to Castors pool, otherwise Puloxes pool
 	 * @param nu number [0, 1] where 1 indicates that the two triangular pools touch each other
 	 */
-	private static void moveToPole(PointND point, boolean firstPool, float nu) {
+	static void moveToPole(PointND point, boolean firstPool, float nu) {
 		nu = nu / 2;//actual nu is until half of the area
 		point.scale(nu);
 		PointND ref;
@@ -264,7 +272,6 @@ public class JOpinionsCLI {
 		ref.scale(1.0f-nu);
 		point.add(ref);
 		point.normalize();
-		
 	}	
 	private static void mobilize(Graph<PointND, DefaultEdge> graph, float rho, Random randomGenerator) {
 		final Comparator<DefaultEdge> inDegreeEdgeTargetComparator = new InDegreeEdgeTargetComparator(graph);
