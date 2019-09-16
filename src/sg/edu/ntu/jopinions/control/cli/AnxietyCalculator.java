@@ -76,12 +76,6 @@ public class AnxietyCalculator {
 //		out.format("step\tid\tl\ts\ts/l\tl/s\t(s+m)/(l/m)\tH(s,l)-H(s,m,l)\th(s,l)\tH(s,m,l)\tH(s,l)\tH((s/(s+m+l)),(l/(s+m+l)))\tH((s/m),(l/m))\n");
 		
     	int n = Integer.valueOf(Utils.getParameter(args, "-numCouples", "-1", "400"));
-    	float[][] prevState = new float[2*n][d_3];
-    	for (int i = 0; i < prevState.length; i++) {
-    		for (int j = 0; j < prevState[i].length; j++) {
-    			prevState[i][j] = 1/d_3;
-    		}
-    	}
     	
     	String id = inFolder.getName();
 //		File logFile = new File(inFolder, String.format("log-%s.log",id));
