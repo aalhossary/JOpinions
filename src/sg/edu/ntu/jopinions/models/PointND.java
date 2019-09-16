@@ -180,6 +180,90 @@ public class PointND {
 	}
 	
 	
+//	===================================================================
+	/**	 Given three colinear points p, q, r, the function checks if point q lies on line segment 'pr' 
+	 * @param p
+	 * @param q
+	 * @param r
+	 * @return true if point p lies on line segment pr, false otherwise.
+	 */
+	static boolean onSegment(PointND p, PointND q, PointND r) {
+		return 	q.x[0] <= Math.max(p.x[0], r.x[0]) && q.x[0] >= Math.min(p.x[0], r.x[0]) && 
+				q.x[1] <= Math.max(p.x[1], r.x[1]) && q.x[1] >= Math.min(p.x[1], r.x[1]);
+	}
+
+	/**
+	 * To find orientation of ordered triplet (p, q, r). <br>
+	 * The function returns following values
+	 * 0 --> p, q and r are colinear 
+	 * 1 --> Clockwise
+	 * 2 --> Counterclockwise 
+	 * @param p
+	 * @param q
+	 * @param r
+	 * @return
+	 */
+	static int orientation(PointND p, PointND q, PointND r) {
+		// See https://www.geeksforgeeks.org/orientation-3-ordered-points/
+		// for details of below formula.
+		int val = (int) ((q.x[1] - p.x[1]) * (r.x[0] - q.x[0]) - (q.x[0] - p.x[0]) * (r.x[1] - q.x[1]));
+
+		if (val == 0)
+			return 0; // colinear
+
+		return (val > 0) ? 1 : 2; // clock or counterclock wise
+	} 
+
+	/**
+	 * The main function that returns true if line segment 'p1q1' and 'p2q2' intersect. 
+	 * Based on code from {@link http://geeksforgeeks.org/check-if-two-given-line-segments-intersect/}
+	 * 
+	 * @param p1 segment 1 point 1 (e.g. Castor1)
+	 * @param q1 segment 1 point 2 (e.g. Pullox1)
+	 * @param p2 segment 2 point 1 (e.g. Castor2)
+	 * @param q2 segment 2 point 2 (e.g. Pullox2)
+	 * @return
+	 */
+	public static boolean doIntersect(PointND p1, PointND q1, PointND p2, PointND q2) {
+		// Find the four orientations needed for general and
+		// special cases
+		int o1 = orientation(p1, q1, p2);
+		int o2 = orientation(p1, q1, q2);
+		int o3 = orientation(p2, q2, p1);
+		int o4 = orientation(p2, q2, q1);
+
+		// General case
+		if (o1 != o2 && o3 != o4)
+			return true;
+
+		// Special Cases
+		// p1, q1 and p2 are colinear and p2 lies on segment p1q1
+		if (o1 == 0 && onSegment(p1, p2, q1))
+			return true;
+
+		// p1, q1 and q2 are colinear and q2 lies on segment p1q1
+		if (o2 == 0 && onSegment(p1, q2, q1))
+			return true;
+
+		// p2, q2 and p1 are colinear and p1 lies on segment p2q2
+		if (o3 == 0 && onSegment(p2, p1, q2))
+			return true;
+
+		// p2, q2 and q1 are colinear and q1 lies on segment p2q2
+		if (o4 == 0 && onSegment(p2, q1, q2))
+			return true;
+
+		return false; // Doesn't fall in any of the above cases
+	} 
+	
+	
+	
+	
+	
+	
+	
+	
+//	===================================================================
 	
 	public String getName() {
 		return name;

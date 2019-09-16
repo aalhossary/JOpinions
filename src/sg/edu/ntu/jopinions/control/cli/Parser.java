@@ -3,7 +3,6 @@ package sg.edu.ntu.jopinions.control.cli;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Scanner;
 
@@ -11,7 +10,7 @@ public class Parser {
 	private int n;
 	private int d = 3;
 //	OpinionsMatrix x;
-	Map<Integer, float[][]> states = new LinkedHashMap<>();
+//	Map<Integer, float[][]> states = new LinkedHashMap<>();
 
 	File xFile = null;
 	
