@@ -158,7 +158,7 @@ public class DistortionCalculator {
 		final int ffCandidatesSize = allPossibleFullFixedCandidatesIDsArrayList.size();
 //		System.out.format("Num of FF Candidates = %d, Num combinations of 7 = %d, Num combinations of 8 = %d, Num combinations of 9 = %d.\n", ffCandidatesSize, Helper.nCr(ffCandidatesSize, 7), Helper.nCr(ffCandidatesSize, 8), Helper.nCr(ffCandidatesSize, 9));
 		if (ffCandidatesSize < 13) {
-			System.err.format("%s has only %d fully fixed candidates. Not processed.", id, ffCandidatesSize);
+			System.err.format("%s has only %d fully fixed candidates. Not processed.\n", id, ffCandidatesSize);
 			return;
 		}
 
