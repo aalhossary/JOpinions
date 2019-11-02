@@ -17,9 +17,8 @@
  */
 package sg.edu.ntu.jopinions;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
@@ -28,6 +27,14 @@ import java.util.Set;
 import org.jgrapht.Graph;
 import org.jgrapht.GraphType;
 import org.jgrapht.generate.GraphGenerator;
+import org.jgrapht.graph.DefaultDirectedGraph;
+import org.jgrapht.graph.DefaultEdge;
+import org.jgrapht.util.SupplierUtil;
+
+import sg.edu.ntu.jopinions.control.cli.GraphsIO;
+import sg.edu.ntu.jopinions.models.PointND;
+import sg.edu.ntu.jopinions.models.PointND.PointNDSupplier;
+import sg.edu.ntu.jopinions.models.Utils;
 
 
 public class BollobasGraphGenerator<V, E>
@@ -56,32 +63,39 @@ public class BollobasGraphGenerator<V, E>
      * plus the probability that the new edge is (from an existing vertex v to an
     * existing vertex w), where v and w are chosen independently, v 
     * according to d_out + delta_out, and w according to d_in + delta_in.<br>
-    * This is called gamma. which refers to the probability that the new edge is 
+    * This equals 1 - gamma. Gamma refers to the probability that the new edge is 
     * from an existing vertex v to a new vertex w. */
     final float alphaPlusBeta;
     
-    /**Bias used for Alpha and Beta*/
-    private final float dIn;
-    /**Bias used for Beta and Gamma*/
-    private final float dOut;
-    /**Target total number of nodes*/
-    private final int n;
+    /**In-degree bias used for Alpha and Beta*/
+    private final float deltaIn;
+    /**Out-degree bias used for Beta and Gamma*/
+    private final float deltaOut;
+    /**Target total number of edges to reach. This is more accurate and has a higher priority than {@link #targetNodes}.<br>
+     * It must be provided. If negative number, the user does not care about the total number of edges are 
+     * and is interested only in the number of nodes, therefore, {@link #targetNodes} will be considered instead.
+     * Otherwise, {@link #targetEdges} will be considered and {@link #targetEdges} will be neglected.*/
+    private final int targetEdges;
+    /**Target total number of targetNodes to reach.<br>
+     * This has lower priority than {@link #targetEdges}. It will not be used unless {@link #targetEdges} given is a <i>negative</i> number.*/
+    private final int targetNodes;
 
-    public BollobasGraphGenerator(float alpha, float gamma, float dIn, float dOut, int n){
-    	this(alpha, gamma, dIn, dOut, n, new Random());
+    public BollobasGraphGenerator(float alpha, float gamma, float dIn, float dOut, int targetEdges, int targetNodes){
+    	this(alpha, gamma, dIn, dOut, targetEdges, targetNodes, new Random());
     }
     
-    public BollobasGraphGenerator(float alpha, float gamma, float dIn, float dOut, int n, long seed){
-    	this(alpha, gamma, dIn, dOut, n, new Random(seed));
+    public BollobasGraphGenerator(float alpha, float gamma, float dIn, float dOut, int targetEdges, int targetNodes, long seed){
+    	this(alpha, gamma, dIn, dOut, targetEdges, targetNodes, new Random(seed));
     }
     
-    public BollobasGraphGenerator(float alpha, float gamma, float dIn, float dOut, int n, Random rng){
+    public BollobasGraphGenerator(float alpha, float gamma, float dIn, float dOut, int targetEdges, int targetNodes, Random rng){
     	this.alpha = alpha;
 //    	this.gamma = gamma;
     	this.alphaPlusBeta = 1.0f - gamma;
-    	this.dIn = dIn;
-    	this.dOut = dOut;
-        this.n = n;
+    	this.deltaIn = dIn;
+    	this.deltaOut = dOut;
+    	this.targetEdges = targetEdges;
+        this.targetNodes = targetNodes;
         this.rng = Objects.requireNonNull(rng, "Random number generator cannot be null");
     	
     	//TODO Do several checks on the parameters
@@ -95,104 +109,135 @@ public class BollobasGraphGenerator<V, E>
      * @param resultMap not used by this generator, can be null
      */
     @Override
-    public void generateGraph(Graph<V, E> target, Map<String, V> resultMap)
-    {
-        List<V> nodesInDegrees  = new ArrayList<>();
-        List<V> nodesOutDegrees = new ArrayList<>();
-        
-//        Set<V> oldNodes = new HashSet<>(target.vertexSet());
-        Set<V> newNodes = new HashSet<>();
-        List<V> nodes = new ArrayList<>();
+    public void generateGraph(Graph<V, E> target, Map<String, V> resultMap){
+        Set<V> newNodesSet = new HashSet<>();
+        Set<E> newEdgesSet = new HashSet<>();
+        final int MAX_VERTEX_FAILURES = 1000;
 
-//        /*
-//         * Create complete graph with m0 nodes
-//         */
-//        Set<V> oldNodes = new HashSet<>(target.vertexSet());
-//        Set<V> newNodes = new HashSet<>();
-//        new CompleteGraphGenerator<V, E>(m0).generateGraph(target, resultMap);
-//        target.vertexSet().stream().filter(v -> !oldNodes.contains(v)).forEach(newNodes::add);
-//
-//        List<V> nodes = new ArrayList<>(n * m);
-
-        //let's assume we initially have two nodes with one edge
-        //TODO discuss that with ZR and change it later
-        V newV1 = target.addVertex();
-        V newV2 = target.addVertex();
-        target.addEdge(newV1, newV2);
-        newNodes.add(newV1);
-        newNodes.add(newV2);
-        nodes.addAll(newNodes);
+        V initV = target.addVertex();
+        newNodesSet.add(initV);
         
-        //now add them proportionately
-        for (V node : newNodes) {
-        	//TODO Do we assume that all initial nodes are connected? Change this if we don't. 
-        	for (int i = 0; i < target.inDegreeOf(node); i++) {
-				nodesInDegrees.add(node);
-			}
-        	for (int i = 0; i < target.outDegreeOf(node); i++) {
-				nodesOutDegrees.add(node);
-			}
-		}
-        
+        int failuresCounter = 0;
         //grow network now
-        while(newNodes.size() < n) {
-        	V v, w; E e;
-        	float direction = rng.nextFloat();
-        	if(direction <= alpha) {
-        		v = target.addVertex();
-        		w = picAVertix(dIn, nodesInDegrees);
-        	} else if (direction <= alphaPlusBeta) {
-        		v = picAVertix(dOut, nodesOutDegrees);
-        		w = picAVertix(dIn, nodesInDegrees);
+        while(targetEdges >= 0 ? targetEdges > newEdgesSet.size() : newNodesSet.size() <= targetNodes) {
+			
+        	if(failuresCounter >= MAX_VERTEX_FAILURES) {
+				final String errMsg = failuresCounter +" successive failures more than maximum allowed number.";
+				System.err.println(errMsg);
+				throw new RuntimeException(errMsg);
+			}
+
+			V v, w, newV = null, newW = null; E e;
+        	float tributaries = rng.nextFloat();
+        	if(tributaries <= alpha) {
+        		//stop adding nodes if you will exceed the target
+        		if(targetEdges < 0 && newNodesSet.size() == targetNodes)
+        			break;
+        		v = newV = target.addVertex();
+        		w = picAVertix(target, newNodesSet, newEdgesSet, true, deltaIn);
+        	} else if (tributaries <= alphaPlusBeta) {
+        		v = picAVertix(target, newNodesSet, newEdgesSet, false, deltaOut);
+        		w = picAVertix(target, newNodesSet, newEdgesSet, true, deltaIn);
         	}else {//gamma
-        		v = picAVertix(dOut, nodesOutDegrees);
-        		w = target.addVertex();
+        		//stop adding nodes if you will exceed the target
+        		if(targetEdges < 0 && newNodesSet.size() == targetNodes)
+        			break;
+        		v = picAVertix(target, newNodesSet, newEdgesSet, false, deltaOut);
+        		w = newW = target.addVertex();
         	}
 			
-        	if(v == null || w == null) {
-        		continue;
-        		//TODO add counter, warning, and break
+        	if(v== null || w == null) {
+        		if(v == null) {
+        			target.removeVertex(newW);
+        		}
+        		if(w == null) {
+        			target.removeVertex(newV);
+        		}
+    			failuresCounter++;
+    			System.err.println("WARNING: failed to pick a suitable node: Trial # "+failuresCounter);
+    			continue;
+        	}else {
+        		failuresCounter = 0;
         	}
+
         	final GraphType graphType = target.getType();
         	//check for self loops
         	if( ! graphType.isAllowingSelfLoops() && v == w) {
+        		failuresCounter++;
         		continue;
         	}
-        	//check for multiple parallel edges
+        	//check for multiple parallel targetEdges
 			if ( ! graphType.isAllowingMultipleEdges() && target.containsEdge(v, w)) {
-            	continue;
+        		failuresCounter++;
+        		continue;
             }
-        	
+			
         	e = target.addEdge(v, w);
         	if(e == null) {
         		//some other unknown internal error
-        		throw new RuntimeException("unexpected failure;");
-        		//TODO ?????
+        		throw new RuntimeException("unexpected failure");
         	}
-        	nodesOutDegrees.add(v);
-        	nodesInDegrees.add(w);
-        	newNodes.add(v);
-        	newNodes.add(w);
+
+        	newNodesSet.add(v);
+        	newNodesSet.add(w);
+        	newEdgesSet.add(e);
         }
     }
     
     /**
+     * @param target TODO
+     * @param allNewNodes TODO
+     * @param allNewEdgesSet TODO
+     * @param directionIn in or out
      * @param bias deltaIn or deltaOut according to the call
-     * @param allNodes bag containing all vertices, where each node exists a 
-     * number of times proportional to their inDegree / outDegree. It represents [ t + delta_out n(t) ] in the paper.
      * @return the selected node.
      */
-    public V picAVertix(float bias, List<V> allNodes){
-    	final int size = allNodes.size();
-    	if(size == 0) {
+    public V picAVertix(Graph<V, E> target, Set<V> allNewNodes, Set<E> allNewEdgesSet, boolean directionIn, float bias){
+    	final int allNewNodesSize = allNewNodes.size();
+    	if(allNewNodesSize == 0) {
     		return null;
-    	}
-    	//index of a node to pickup
-		float r = rng.nextFloat() * size - bias;
-		//add a random offset to allow all nodes (not only first ones) to be picked up
-    	final int randomOffset = rng.nextInt(size);
-		r = (r + randomOffset) % size;
-		return allNodes.get((int) r);
+    	} else if (allNewNodesSize == 1) {
+			return allNewNodes.iterator().next();
+		}
+
+    	float indicatorAccumulator = 0;
+    	V ret;
+		float denominator = allNewEdgesSet.size() + allNewNodesSize * bias;
+    	
+    	float r = rng.nextFloat();
+    	//multiply r by denominator instead of dividing all individual values by it.
+    	r *= denominator;
+    	Iterator<V> verticesIterator = allNewNodes.iterator();
+    	do {
+    		ret = verticesIterator.next();
+    		if (directionIn) {
+				indicatorAccumulator += (target.inDegreeOf(ret) + bias);
+			}else {
+				indicatorAccumulator += (target.outDegreeOf(ret) + bias);
+			}
+		} while (verticesIterator.hasNext() && indicatorAccumulator < r);
+
+		return ret;
     }
+    
+    public static void main(String[] args) {
+    	Graph<PointND, DefaultEdge> testGraph = new DefaultDirectedGraph<PointND, DefaultEdge>(new PointNDSupplier(3, Constants.CASTOR),SupplierUtil.createDefaultEdgeSupplier(), false);
+		BollobasGraphGenerator<PointND, DefaultEdge> testGraphGenerator = new BollobasGraphGenerator<PointND, DefaultEdge>(0.111f, 0.111f, 0, 1, 100, 0, 0);
+		testGraphGenerator.generateGraph(testGraph);
+		System.out.println(testGraph);
+		GraphsIO.export(testGraph, System.out);
+		System.out.println("==============");
+		
+		Utils.cacheVerticesDegrees(testGraph);
+		Set<PointND> vertexSet = testGraph.vertexSet();
+		vertexSet.stream().sorted((v1, v2) -> v1.getInDegree() - v2.getInDegree()).forEachOrdered(v -> System.out.println("" + v.getId()+"\t"+v.getInDegree()));
+		System.out.println("==============");
+		vertexSet.stream().sorted((v1, v2) -> v1.getOutDegree() - v2.getOutDegree()).forEachOrdered(v -> System.out.println("" + v.getId()+"\t"+v.getOutDegree()));
+		System.out.println("==============");
+		//distribution of outdegree where indegree == 0
+		vertexSet.stream().filter(v -> v.getInDegree()==0).sorted((v1, v2) -> v1.getOutDegree() - v2.getOutDegree()).forEachOrdered(v -> System.out.println("" + v.getId()+"\t"+v.getOutDegree()));
+		System.out.println("==============");
+		
+	}
 
 }
