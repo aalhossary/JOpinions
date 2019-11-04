@@ -34,7 +34,7 @@ public class IndependentNetworkedCastorAndPolluxEffectMatrix extends AbstractInd
 		Graph<PointND, DefaultEdge> graphCC = graphs[0];
 		Graph<PointND, DefaultEdge> graphPP = graphs[3];
 		float nominator = 1, denominator;
-		final float onePlusEgo_Over_Epsilon = (1 + Defaults.DEFAULT_EGO) / Defaults.EPSILON/* + 0 */;
+		final float onePlusEgo_Over_Epsilon = (1 + ego) / Defaults.EPSILON/* + 0 */;
 		Set<DefaultEdge> edgeSet;
 		//calculate cc
 		edgeSet = graphCC.edgeSet();

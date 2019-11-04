@@ -44,7 +44,7 @@ public class FullyCoupledNetworkedCastorAndPolluxEffectMatrix extends AbstractCo
 		float oneMinusAlpha, oneMinusBeta = 1-beta;
 		float nominator, denominator;
 		PointND yC, yP;
-		final float oneMinusBeta_Times_OnePlusEgo = oneMinusBeta * (1 + Defaults.DEFAULT_EGO);
+		final float oneMinusBeta_Times_OnePlusEgo = oneMinusBeta * (1 + ego);
 		
 		PointND[] points = x.points;
 		/**just a temporary point to avoid repetitive object allocation. use with caution*/

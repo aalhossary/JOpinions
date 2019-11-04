@@ -57,7 +57,7 @@ public class CoupledNetworkedCastorAndPolluxBetaEffectMatrix extends AbstractCou
 
 		//fill CC
 		final float oneMinusBeta = 1 - beta;
-		final float oneMinusBetaTimesOnePlusEgo = oneMinusBeta * (1 + Defaults.DEFAULT_EGO);
+		final float oneMinusBetaTimesOnePlusEgo = oneMinusBeta * (1 + ego);
 		Iterator<DefaultEdge> edgesCCIerator = graphCC.edgeSet().iterator();
 		while (edgesCCIerator.hasNext()) {
 			DefaultEdge edge = (DefaultEdge) edgesCCIerator.next();

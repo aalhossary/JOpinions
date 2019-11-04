@@ -42,6 +42,8 @@ public abstract class EffectMatrix {
 
 	private static String ZEROS;
 
+	protected float ego = Defaults.DEFAULT_EGO;
+
 	/**
 	 * @param n number of entities, usually couples. May be singles if all Pulluxes are not connected to all Castors.
 	 */
@@ -67,7 +69,7 @@ public abstract class EffectMatrix {
 	 */
 	public abstract float getEffect(int y, int x);
 	
-	/**Updates the values of all individual vlaues of Effects, based on distances
+	/**Updates the values of all individual values of Effects, based on distances
 	 * between points and connects as defined in the graph.
 	 * @param x The {@link OpinionsMatrix}. it represents collective opinions at current time
 	 * @param graphs the relations between vertices
@@ -75,7 +77,7 @@ public abstract class EffectMatrix {
 	public abstract void updateUsing(OpinionsMatrix x, Graph<PointND, DefaultEdge>[] graphs);
 
 
-	/**normalizes the matrix <i><b>column</b> wise</i> (including lines from one or two quadrants)*/
+	/**Normalizes the matrix <i><b>column</b> wise</i> (including lines from one or two quadrants)*/
 	public abstract void normalize();
 	
 	protected float getEffectWithinQuadrant(float[][] quad, int y, int x) {
@@ -85,7 +87,7 @@ public abstract class EffectMatrix {
 	 * <pre>
 	 * (  0  |  2
 	 * ------+------
-	 *    1  |  3
+	 *    1  |  3  )
 	 * </pre>
 	 */
 	public static int getQuadrant(int row, int col) {
@@ -129,5 +131,9 @@ public abstract class EffectMatrix {
 			}
 			out.println();
 		}
+	}
+	
+	public void setEgo(float ego) {
+		this.ego = ego;
 	}
 }

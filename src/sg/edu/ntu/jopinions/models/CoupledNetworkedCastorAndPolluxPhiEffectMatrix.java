@@ -86,7 +86,7 @@ public class CoupledNetworkedCastorAndPolluxPhiEffectMatrix extends AbstractCoup
 		float phi = this.phi;
 		float nominator, denominator;
 		final float oneMinusPhi = (1 - phi);
-		final float oneMinusPhi_Times_onePlusEgo = (1 - phi)*(1+Defaults.DEFAULT_EGO);
+		final float oneMinusPhi_Times_onePlusEgo = (1 - phi)*(1+ ego);
 
 		
 		//fill PC and CP

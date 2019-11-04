@@ -43,6 +43,10 @@ import sg.edu.ntu.jopinions.models.Utils;
 
 public class JOpinionsCLI {
 	
+	public static final String PATTERN_LOG_FILE_GRAPH_C = "gc-%s.log";
+	public static final String PATTERN_LOG_FILE_GRAPH_P = "gp-%s.log";
+	public static final String PATTERN_LOG_FILE_X = "x-%s.log";
+	public static final String PATTERN_LOG_FILE_D = "D-%s.log";
 	private static Random randomGenerator;
 	private static JOpinionsCLI instance=null;
 	private static boolean verbose;
@@ -85,10 +89,10 @@ public class JOpinionsCLI {
 			}
 			boolean effectMatrix = Boolean.valueOf(Utils.getParameter(args, "-effectsMatrix", "true", "false"));
 			try {
-				ggFile = new File(outFolder, String.format("gg-%s.log", id));
-				ppFile = new File(outFolder, String.format("pp-%s.log", id));
-				File xFile = new File(outFolder, String.format("x-%s.log", id));
-				File DFile = new File(outFolder, String.format("D-%s.log", id));
+				ggFile = new File(outFolder, String.format(JOpinionsCLI.PATTERN_LOG_FILE_GRAPH_C, id));
+				ppFile = new File(outFolder, String.format(JOpinionsCLI.PATTERN_LOG_FILE_GRAPH_P, id));
+				File xFile = new File(outFolder, String.format(JOpinionsCLI.PATTERN_LOG_FILE_X, id));
+				File DFile = new File(outFolder, String.format(JOpinionsCLI.PATTERN_LOG_FILE_D, id));
 				xOut = new PrintStream(new BufferedOutputStream(new FileOutputStream(xFile), 8 * 1024), false);
 				if (effectMatrix) {
 					DOut = new PrintStream(new BufferedOutputStream(new FileOutputStream(DFile), 8 * 1024), false);
@@ -122,6 +126,7 @@ public class JOpinionsCLI {
 			generator.generateGraph(graphCC);
 			addSelfLoops(graphCC);
 			Utils.cacheVerticesDegrees(graphCC);
+//			randomGenerator.set
 			success = mobilize(graphCC, rho, randomGenerator);
 		}while (! success & ++attempts < MAX_MOBILIZATION_ATTEMPTS); //This is & (not &&) on purpose; to increment attempts.
 		if (verbose) {
@@ -144,7 +149,7 @@ public class JOpinionsCLI {
 			System.out.println("Attempted " + attempts + " times to manipulate graph.");
 		}
 		if(! success) {
-			System.err.println("ERROR: Failed to obtain a graph with desired distribution after "+MAX_MOBILIZATION_ATTEMPTS+" attempts. Exiting.");
+			System.err.println("ERROR: Failed to obtain a graph with desired distribution after "+ MAX_MOBILIZATION_ATTEMPTS+" attempts. Exiting.");
 			System.exit(-3);
 		}
 		
@@ -166,6 +171,7 @@ public class JOpinionsCLI {
 		simulation.setD(model);
 
 		OpinionsMatrix x = createOpinionsMatrix(numCouples, numDimensions, graphCC, graphPP);
+		randomGenerator.setSeed(seed);
 		x.randomize(randomGenerator);
 		x.normalize();
 		
@@ -452,7 +458,7 @@ public class JOpinionsCLI {
 			float beta = Float.valueOf(Utils.getParameter(args, "-beta", "", "0.3333"));
 			float dIn = Float.valueOf(Utils.getParameter(args, "-dIn", "", "1"));
 			float dOut = Float.valueOf(Utils.getParameter(args, "-dOut", "", "1"));
-			generator = new BollobasGraphGenerator<>(alpha, beta, dIn, dOut, numCouples, random);
+			generator = new BollobasGraphGenerator<>(alpha, beta, dIn, dOut, -1, numCouples, random);
 			break;
 
 		default:
@@ -504,6 +510,7 @@ public class JOpinionsCLI {
 		default:
 			throw new IllegalArgumentException("Unknown model parameter: "+dynamicsModelString);
 		}
+		model.setEgo(Float.valueOf(Utils.getParameter(args, "-ego", null, ""+Defaults.DEFAULT_EGO)));
 		simulation.setModelNameString(dynamicsModelString);
 		return model;
 	}

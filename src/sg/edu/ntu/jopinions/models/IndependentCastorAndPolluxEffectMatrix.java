@@ -29,7 +29,7 @@ public class IndependentCastorAndPolluxEffectMatrix extends AbstractIndependentC
 	public void updateUsing(OpinionsMatrix x, Graph<PointND, DefaultEdge>[] graphs) {
 		int n = EffectMatrix.n;
 		//Nominator is always = 1
-		final float nominator = 1.0f + Defaults.DEFAULT_EGO;
+		final float nominator = 1.0f + ego;
 		float denominator;
 		//calculate cc
 		for (int i = 0; i < n; i++) {
