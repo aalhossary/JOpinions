@@ -43,15 +43,9 @@ public class BollobasGraphGenerator<V, E>
 {
     private final Random rng;
     
-//    /**initial graph*/
-//    private Graph<V, E> g0 = null;
-//    /**number of vertices in initial graph*/
-//    private int v0 = -1;
-//    /**number of edges in initial graph*/
-//    private int t0 = -1;
     /**probability that the new edge is from a new vertex v to an 
      * existing vertex w, where w is chosen according to d_in + delta_in*/
-    private final float alpha;
+	private final float alpha;
 //    /**probability that the new edge is from an existing vertex v to an
 //     * existing vertex w, where v and w are chosen independently, v 
 //     * according to d_out + delta_out, and w according to d_in + delta_in.*/
@@ -79,6 +73,8 @@ public class BollobasGraphGenerator<V, E>
     /**Target total number of targetNodes to reach.<br>
      * This has lower priority than {@link #targetEdges}. It will not be used unless {@link #targetEdges} given is a <i>negative</i> number.*/
     private final int targetNodes;
+    private static final boolean IN_DEGREE = true;
+    private static final boolean OUT_DEGREE = false;
 
     public BollobasGraphGenerator(float alpha, float gamma, float dIn, float dOut, int targetEdges, int targetNodes){
     	this(alpha, gamma, dIn, dOut, targetEdges, targetNodes, new Random());
@@ -88,12 +84,12 @@ public class BollobasGraphGenerator<V, E>
     	this(alpha, gamma, dIn, dOut, targetEdges, targetNodes, new Random(seed));
     }
     
-    public BollobasGraphGenerator(float alpha, float gamma, float dIn, float dOut, int targetEdges, int targetNodes, Random rng){
+    public BollobasGraphGenerator(float alpha, float gamma, float deltaIn, float deltaOut, int targetEdges, int targetNodes, Random rng){
     	this.alpha = alpha;
 //    	this.gamma = gamma;
     	this.alphaPlusBeta = 1.0f - gamma;
-    	this.deltaIn = dIn;
-    	this.deltaOut = dOut;
+    	this.deltaIn = deltaIn;
+    	this.deltaOut = deltaOut;
     	this.targetEdges = targetEdges;
         this.targetNodes = targetNodes;
         this.rng = Objects.requireNonNull(rng, "Random number generator cannot be null");
@@ -134,15 +130,15 @@ public class BollobasGraphGenerator<V, E>
         		if(targetEdges < 0 && newNodesSet.size() == targetNodes)
         			break;
         		v = newV = target.addVertex();
-        		w = picAVertix(target, newNodesSet, newEdgesSet, true, deltaIn);
+        		w = picAVertix(target, newNodesSet, newEdgesSet, IN_DEGREE, deltaIn);
         	} else if (tributaries <= alphaPlusBeta) {
-        		v = picAVertix(target, newNodesSet, newEdgesSet, false, deltaOut);
-        		w = picAVertix(target, newNodesSet, newEdgesSet, true, deltaIn);
+        		v = picAVertix(target, newNodesSet, newEdgesSet, OUT_DEGREE, deltaOut);
+        		w = picAVertix(target, newNodesSet, newEdgesSet, IN_DEGREE, deltaIn);
         	}else {//gamma
         		//stop adding nodes if you will exceed the target
         		if(targetEdges < 0 && newNodesSet.size() == targetNodes)
         			break;
-        		v = picAVertix(target, newNodesSet, newEdgesSet, false, deltaOut);
+        		v = picAVertix(target, newNodesSet, newEdgesSet, OUT_DEGREE, deltaOut);
         		w = newW = target.addVertex();
         	}
 			
@@ -185,44 +181,42 @@ public class BollobasGraphGenerator<V, E>
     }
     
     /**
-     * @param target TODO
-     * @param allNewNodes TODO
-     * @param allNewEdgesSet TODO
-     * @param directionIn in or out
-     * @param bias deltaIn or deltaOut according to the call
+     * @param target The target graph
+     * @param allNewNodes All (new) nodes in the target graph
+     * @param allNewEdgesSet All (new) edges in the target graph
+     * @param directionIn <code>true</code> for inDegree or <code>false</code> for outDegree
+     * @param bias deltaIn or deltaOut value according to #directioIn
      * @return the selected node.
      */
-    public V picAVertix(Graph<V, E> target, Set<V> allNewNodes, Set<E> allNewEdgesSet, boolean directionIn, float bias){
+    V picAVertix(Graph<V, E> target, Set<V> allNewNodes, Set<E> allNewEdgesSet, boolean directionIn, float bias){
     	final int allNewNodesSize = allNewNodes.size();
     	if(allNewNodesSize == 0) {
     		return null;
     	} else if (allNewNodesSize == 1) {
-			return allNewNodes.iterator().next();
-		}
+    		return allNewNodes.iterator().next();
+    	}
 
     	float indicatorAccumulator = 0;
     	V ret;
-		float denominator = allNewEdgesSet.size() + allNewNodesSize * bias;
-    	
+    	float denominator = allNewEdgesSet.size() + allNewNodesSize * bias;
+    	float nominator;
+
     	float r = rng.nextFloat();
     	//multiply r by denominator instead of dividing all individual values by it.
     	r *= denominator;
     	Iterator<V> verticesIterator = allNewNodes.iterator();
     	do {
     		ret = verticesIterator.next();
-    		if (directionIn) {
-				indicatorAccumulator += (target.inDegreeOf(ret) + bias);
-			}else {
-				indicatorAccumulator += (target.outDegreeOf(ret) + bias);
-			}
-		} while (verticesIterator.hasNext() && indicatorAccumulator < r);
+    		nominator = directionIn == IN_DEGREE ? (target.inDegreeOf(ret) + bias) : (target.outDegreeOf(ret) + bias);
+    		indicatorAccumulator += nominator;
+    	} while (verticesIterator.hasNext() && indicatorAccumulator < r);
 
-		return ret;
+    	return ret;
     }
     
     public static void main(String[] args) {
     	Graph<PointND, DefaultEdge> testGraph = new DefaultDirectedGraph<PointND, DefaultEdge>(new PointNDSupplier(3, Constants.CASTOR),SupplierUtil.createDefaultEdgeSupplier(), false);
-		BollobasGraphGenerator<PointND, DefaultEdge> testGraphGenerator = new BollobasGraphGenerator<PointND, DefaultEdge>(0.111f, 0.111f, 0, 1, 100, 0, 0);
+		BollobasGraphGenerator<PointND, DefaultEdge> testGraphGenerator = new BollobasGraphGenerator<PointND, DefaultEdge>(0.41f, 0.05f, 0.12f, 0.0f, -1, 100);
 		testGraphGenerator.generateGraph(testGraph);
 		System.out.println(testGraph);
 		GraphsIO.export(testGraph, System.out);
@@ -230,11 +224,14 @@ public class BollobasGraphGenerator<V, E>
 		
 		Utils.cacheVerticesDegrees(testGraph);
 		Set<PointND> vertexSet = testGraph.vertexSet();
+		System.out.println("Id\tInDegree");
 		vertexSet.stream().sorted((v1, v2) -> v1.getInDegree() - v2.getInDegree()).forEachOrdered(v -> System.out.println("" + v.getId()+"\t"+v.getInDegree()));
 		System.out.println("==============");
+		System.out.println("Id\tOutDegree");
 		vertexSet.stream().sorted((v1, v2) -> v1.getOutDegree() - v2.getOutDegree()).forEachOrdered(v -> System.out.println("" + v.getId()+"\t"+v.getOutDegree()));
 		System.out.println("==============");
 		//distribution of outdegree where indegree == 0
+		System.out.println("Id\tOutDegree [where InDegree == 0]");
 		vertexSet.stream().filter(v -> v.getInDegree()==0).sorted((v1, v2) -> v1.getOutDegree() - v2.getOutDegree()).forEachOrdered(v -> System.out.println("" + v.getId()+"\t"+v.getOutDegree()));
 		System.out.println("==============");
 		
