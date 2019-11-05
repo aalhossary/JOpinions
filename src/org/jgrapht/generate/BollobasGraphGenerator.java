@@ -26,7 +26,6 @@ import java.util.Set;
 
 import org.jgrapht.Graph;
 import org.jgrapht.GraphType;
-import org.jgrapht.generate.GraphGenerator;
 import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.util.SupplierUtil;
@@ -60,10 +59,10 @@ public class BollobasGraphGenerator<V, E>
     private final float deltaIn;
     /**Out-degree bias used for Beta and Gamma*/
     private final float deltaOut;
-    /**Target total number of edges to reach. This is more accurate and has a higher priority than {@link #targetNodes}.<br>
-     * It must be provided. If negative number, the user does not care about the total number of edges are 
-     * and is interested only in the number of nodes, therefore, {@link #targetNodes} will be considered instead.
-     * Otherwise, {@link #targetEdges} will be considered and {@link #targetEdges} will be neglected.*/
+    /**Target total number of edges to reach. It has a higher priority than {@link #targetNodes}. Zero is a valid value.<br>
+    * If negative number, the user does not care about the total number of edges
+    * and is interested only in the number of nodes, therefore, {@link #targetNodes} will be considered instead.
+    * Otherwise, {@link #targetEdges} will be considered and {@link #targetEdges} will be ignored.*/
     private final int targetEdges;
     /**Target total number of targetNodes to reach.<br>
      * This has lower priority than {@link #targetEdges}. It will not be used unless {@link #targetEdges} given is a <i>negative</i> number.*/
@@ -71,14 +70,52 @@ public class BollobasGraphGenerator<V, E>
     private static final boolean IN_DEGREE = true;
     private static final boolean OUT_DEGREE = false;
 
+    /**Constructs a Generator with a Random Number Generator using a random seed.
+     * @param alpha	The probability that the new edge is from a new vertex v to an existing vertex w, where w is chosen according to d_in + delta_in.
+     * @param gamma	The probability that the new edge is from an existing vertex v to a new vertex w, where v is chosen according to d_out + delta_out.
+     * @param deltaIn	The in-degree bias used for Alpha and Beta.
+     * @param deltaOut	The out-degree bias used for Beta and Gamma.
+     * @param targetEdges	Target total number of edges to reach. It has a higher priority than {@link #targetNodes}. Zero is a valid value.<br>
+     * If negative number, the user does not care about the total number of edges
+     * and is interested only in the number of nodes, therefore, {@link #targetNodes} will be considered instead.
+     * Otherwise, {@link #targetEdges} will be considered and {@link #targetEdges} will be ignored.
+     * @param targetNodes	Target number of nodes to reach. Zero is a valid value.<br>
+     * This parameter has lower priority than {@link #targetEdges} and will be used only if {@link #targetEdges} given is a <i>negative</i> number.
+     */
     public BollobasGraphGenerator(float alpha, float gamma, float dIn, float dOut, int targetEdges, int targetNodes){
     	this(alpha, gamma, dIn, dOut, targetEdges, targetNodes, new Random());
     }
     
+    /**Constructs a Generator with a Random Number Generator using the given seed.
+     * @param alpha	The probability that the new edge is from a new vertex v to an existing vertex w, where w is chosen according to d_in + delta_in.
+     * @param gamma	The probability that the new edge is from an existing vertex v to a new vertex w, where v is chosen according to d_out + delta_out.
+     * @param deltaIn	The in-degree bias used for Alpha and Beta.
+     * @param deltaOut	The out-degree bias used for Beta and Gamma.
+     * @param targetEdges	Target total number of edges to reach. It has a higher priority than {@link #targetNodes}. Zero is a valid value.<br>
+     * If negative number, the user does not care about the total number of edges
+     * and is interested only in the number of nodes, therefore, {@link #targetNodes} will be considered instead.
+     * Otherwise, {@link #targetEdges} will be considered and {@link #targetEdges} will be ignored.
+     * @param targetNodes	Target number of nodes to reach. Zero is a valid value.<br>
+     * This parameter has lower priority than {@link #targetEdges} and will be used only if {@link #targetEdges} given is a <i>negative</i> number.
+     * @param seed	The seed to feed to the random number generator.
+     */
     public BollobasGraphGenerator(float alpha, float gamma, float dIn, float dOut, int targetEdges, int targetNodes, long seed){
     	this(alpha, gamma, dIn, dOut, targetEdges, targetNodes, new Random(seed));
     }
     
+    /**
+     * @param alpha	The probability that the new edge is from a new vertex v to an existing vertex w, where w is chosen according to d_in + delta_in.
+     * @param gamma	The probability that the new edge is from an existing vertex v to a new vertex w, where v is chosen according to d_out + delta_out.
+     * @param deltaIn	The in-degree bias used for Alpha and Beta.
+     * @param deltaOut	The out-degree bias used for Beta and Gamma.
+     * @param targetEdges	Target total number of edges to reach. It has a higher priority than {@link #targetNodes}. Zero is a valid value.<br>
+     * If negative number, the user does not care about the total number of edges
+     * and is interested only in the number of nodes, therefore, {@link #targetNodes} will be considered instead.
+     * Otherwise, {@link #targetEdges} will be considered and {@link #targetEdges} will be ignored.
+     * @param targetNodes	Target number of nodes to reach. Zero is a valid value.<br>
+     * This parameter has lower priority than {@link #targetEdges} and will be used only if {@link #targetEdges} given is a <i>negative</i> number.
+     * @param rng	The {@link Random} object to use.
+     */
     public BollobasGraphGenerator(float alpha, float gamma, float deltaIn, float deltaOut, int targetEdges, int targetNodes, Random rng){
     	this.alpha = alpha;
 //    	this.gamma = gamma;
@@ -89,7 +126,20 @@ public class BollobasGraphGenerator<V, E>
         this.targetNodes = targetNodes;
         this.rng = Objects.requireNonNull(rng, "Random number generator cannot be null");
     	
-    	//TODO Do several checks on the parameters
+        // Do several checks on the parameters
+        if(alpha < 0 || gamma < 0 || alpha + gamma > 1) {
+        	throw new IllegalArgumentException(String.format("alpha and gamma values of (%f, %f) are invalid", alpha, gamma));
+        }
+        if(deltaIn < 0 || deltaOut < 0) {
+        	throw new IllegalArgumentException(String.format("deltaIn and deltaOut values of (%f, %f) are invalid", deltaIn, deltaOut));
+        }
+        if (targetEdges < 0) {
+        	//priority is for targetNodes
+			if (targetNodes < 0) {
+				throw new IllegalArgumentException("can not have both targetEdges and targetNodes not set.");
+			}
+		}
+
     	
     }
 
