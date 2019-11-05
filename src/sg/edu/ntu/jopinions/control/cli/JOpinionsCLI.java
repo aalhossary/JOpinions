@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 import org.jgrapht.Graph;
 import org.jgrapht.Graphs;
 import org.jgrapht.generate.BarabasiAlbertGraphGenerator;
+import org.jgrapht.generate.BollobasGraphGenerator;
 import org.jgrapht.generate.GnmRandomGraphGenerator;
 import org.jgrapht.generate.GraphGenerator;
 import org.jgrapht.generate.KleinbergSmallWorldGraphGenerator;
@@ -26,7 +27,6 @@ import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.EdgeReversedGraph;
 import org.jgrapht.util.SupplierUtil;
 
-import sg.edu.ntu.jopinions.BollobasGraphGenerator;
 import sg.edu.ntu.jopinions.Constants;
 import sg.edu.ntu.jopinions.Defaults;
 import sg.edu.ntu.jopinions.control.Simulation;

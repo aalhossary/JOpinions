@@ -15,7 +15,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR LGPL-2.1-or-later
  */
-package sg.edu.ntu.jopinions;
+package org.jgrapht.generate;
 
 import java.util.HashSet;
 import java.util.Iterator;
