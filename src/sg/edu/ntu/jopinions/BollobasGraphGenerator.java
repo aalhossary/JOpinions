@@ -31,11 +31,6 @@ import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.util.SupplierUtil;
 
-import sg.edu.ntu.jopinions.control.cli.GraphsIO;
-import sg.edu.ntu.jopinions.models.PointND;
-import sg.edu.ntu.jopinions.models.PointND.PointNDSupplier;
-import sg.edu.ntu.jopinions.models.Utils;
-
 
 public class BollobasGraphGenerator<V, E>
     implements
@@ -215,26 +210,28 @@ public class BollobasGraphGenerator<V, E>
     }
     
     public static void main(String[] args) {
-    	Graph<PointND, DefaultEdge> testGraph = new DefaultDirectedGraph<PointND, DefaultEdge>(new PointNDSupplier(3, Constants.CASTOR),SupplierUtil.createDefaultEdgeSupplier(), false);
-		BollobasGraphGenerator<PointND, DefaultEdge> testGraphGenerator = new BollobasGraphGenerator<PointND, DefaultEdge>(0.41f, 0.05f, 0.12f, 0.0f, -1, 100);
+    	Graph<Integer, DefaultEdge> testGraph = new DefaultDirectedGraph<Integer, DefaultEdge>(SupplierUtil.createIntegerSupplier(), SupplierUtil.createDefaultEdgeSupplier(), false);
+		BollobasGraphGenerator<Integer, DefaultEdge> testGraphGenerator = new BollobasGraphGenerator<Integer, DefaultEdge>(0.41f, 0.05f, 0.12f, 0.12f, -1, 100);
 		testGraphGenerator.generateGraph(testGraph);
 		System.out.println(testGraph);
-		GraphsIO.export(testGraph, System.out);
+//		GraphsIO.export(testGraph, System.out);
 		System.out.println("==============");
 		
-		Utils.cacheVerticesDegrees(testGraph);
-		Set<PointND> vertexSet = testGraph.vertexSet();
+		Set<Integer> vertexSet = testGraph.vertexSet();
 		System.out.println("Id\tInDegree");
-		vertexSet.stream().sorted((v1, v2) -> v1.getInDegree() - v2.getInDegree()).forEachOrdered(v -> System.out.println("" + v.getId()+"\t"+v.getInDegree()));
+		vertexSet.stream().sorted((v1, v2) -> testGraph.inDegreeOf(v1) - testGraph.inDegreeOf(v2)).forEachOrdered(v -> System.out.println("" + v +"\t"+testGraph.inDegreeOf(v)));
 		System.out.println("==============");
 		System.out.println("Id\tOutDegree");
-		vertexSet.stream().sorted((v1, v2) -> v1.getOutDegree() - v2.getOutDegree()).forEachOrdered(v -> System.out.println("" + v.getId()+"\t"+v.getOutDegree()));
+		vertexSet.stream().sorted((v1, v2) -> testGraph.outDegreeOf(v1) - testGraph.outDegreeOf(v2)).forEachOrdered(v -> System.out.println("" + v +"\t"+testGraph.outDegreeOf(v)));
 		System.out.println("==============");
 		//distribution of outdegree where indegree == 0
 		System.out.println("Id\tOutDegree [where InDegree == 0]");
-		vertexSet.stream().filter(v -> v.getInDegree()==0).sorted((v1, v2) -> v1.getOutDegree() - v2.getOutDegree()).forEachOrdered(v -> System.out.println("" + v.getId()+"\t"+v.getOutDegree()));
+		vertexSet.stream().filter(v -> testGraph.inDegreeOf(v)==0).sorted((v1, v2) -> testGraph.inDegreeOf(v1) - testGraph.inDegreeOf(v2)).forEachOrdered(v -> System.out.println("" + v +"\t"+testGraph.inDegreeOf(v)));
 		System.out.println("==============");
-		
+
+		long inDegreeZero = vertexSet.stream().filter(v -> testGraph.inDegreeOf(v)==0).count();
+		long outDegreeZero = vertexSet.stream().filter(v -> testGraph.outDegreeOf(v)==0).count();
+		System.out.format("inDegreeZero = %d, outDegreeZero = %d\n", inDegreeZero, outDegreeZero);
 	}
 
 }
