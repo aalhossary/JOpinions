@@ -44,6 +44,7 @@ import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.io.ImportException;
 
 import sg.edu.ntu.jopinions.Constants;
+import sg.edu.ntu.jopinions.Defaults;
 import sg.edu.ntu.jopinions.control.cli.GraphsIO;
 import sg.edu.ntu.jopinions.control.cli.Parser;
 import sg.edu.ntu.jopinions.models.OpinionsMatrix;
@@ -275,8 +276,8 @@ public class SimulationFrame extends JFrame {
 		    	String id = selectedFolder.getName();
 		    	String[] args = Utils.id2Args(id);
 		    	int n = Integer.valueOf(Utils.getParameter(args, "-numCouples", "-1", "400"));
-		    	File fileGG = new File(selectedFolder, String.format("gg-%s.log", id));
-		    	File filePP = new File(selectedFolder, String.format("pp-%s.log", id));
+		    	File fileGG = new File(selectedFolder, String.format(Defaults.PATTERN_LOG_FILE_GRAPH_CC, id));
+		    	File filePP = new File(selectedFolder, String.format(Defaults.PATTERN_LOG_FILE_GRAPH_PP, id));
 		    	if (! (fileGG.exists() && filePP.exists()) ) {
 					System.err.println("WARNING: Either you selected a wrong folder or the folder does not contain the graph files. "+selectedFolder.getAbsolutePath());
 					return;
@@ -305,7 +306,7 @@ public class SimulationFrame extends JFrame {
 		    	GraphPanel<PointND, DefaultEdge> graphPanel = getGraphPanel();
 		    	graphPanel.setGraphs(graphs);
 		    	
-		    	File xFile = new File(selectedFolder, String.format("x-%s.log", id));
+		    	File xFile = new File(selectedFolder, String.format(Defaults.PATTERN_LOG_FILE_X, id));
 		    	parser = new Parser(n, d_3, xFile);
 		    	states = parser.parse();
 				float[][] stateZero = states[0];

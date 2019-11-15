@@ -17,6 +17,8 @@ public class FullyCoupledNetworkedCastorAndPolluxEffectMatrix extends AbstractCo
 	
 	/**The coupling factor between corresponding Castors and pulloxes.*/
 	private float beta = Defaults.DEFAULT_BETA;
+	float oneMinusBeta;
+	float[] oneMinusBeta_Times_OnePlusEgo;
 
 	/**
 	 * @param n
@@ -35,16 +37,19 @@ public class FullyCoupledNetworkedCastorAndPolluxEffectMatrix extends AbstractCo
 	 */
 	@Override
 	public void updateUsing(OpinionsMatrix x, Graph<PointND, DefaultEdge>[] graphs) {
+		if(variablesNotCached)
+			cacheVariables(x, graphs);
 		int n = EffectMatrix.n;
 		Graph<PointND, DefaultEdge> graphCC = graphs[0];
 //		Graph<PointND, DefaultEdge> graphPC = graphs[1];
 //		Graph<PointND, DefaultEdge> graphCP = graphs[2];
 		Graph<PointND, DefaultEdge> graphPP = graphs[3];
 		float alpha, beta = this.beta;
-		float oneMinusAlpha, oneMinusBeta = 1-beta;
+		float oneMinusAlpha;
+		float oneMinusBeta = this.oneMinusBeta;
 		float nominator, denominator;
 		PointND yC, yP;
-		final float oneMinusBeta_Times_OnePlusEgo = oneMinusBeta * (1 + ego);
+		final float[] oneMinusBeta_Times_OnePlusEgo = this.oneMinusBeta_Times_OnePlusEgo;
 		
 		PointND[] points = x.points;
 		/**just a temporary point to avoid repetitive object allocation. use with caution*/
@@ -55,7 +60,7 @@ public class FullyCoupledNetworkedCastorAndPolluxEffectMatrix extends AbstractCo
 					//CC and PP (myself)
 //					alpha = 1; yC = pointC, yP = pointP;
 //					float dist = 0;
-					nominator = oneMinusBeta_Times_OnePlusEgo;
+					nominator = oneMinusBeta_Times_OnePlusEgo[i];
 					denominator = Constants.EPSILON; // + 0
 					quadrantCC[i][i] = quadrantPP[i][i] = nominator / denominator;
 
@@ -150,5 +155,16 @@ public class FullyCoupledNetworkedCastorAndPolluxEffectMatrix extends AbstractCo
 				}
 			}
 		}
+	}
+
+	@Override
+	protected void cacheVariables(OpinionsMatrix x, Graph<PointND, DefaultEdge>[] graphs) {
+		oneMinusBeta = 1-beta;
+		final PointND[] points = x.points;
+		oneMinusBeta_Times_OnePlusEgo = new float[points.length];
+		for (int i = 0; i < points.length; i++) {
+			oneMinusBeta_Times_OnePlusEgo[i] = oneMinusBeta * (1 + points[i].ego[0]);
+		}
+		variablesNotCached = false;
 	}
 }

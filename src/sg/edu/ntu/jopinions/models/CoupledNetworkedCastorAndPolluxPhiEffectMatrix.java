@@ -20,6 +20,9 @@ public class CoupledNetworkedCastorAndPolluxPhiEffectMatrix extends AbstractCoup
 	/**The coupling factor between corresponding Castors and pulloxes.*/
 	private float phi = Defaults.DEFAULT_PHI;
 
+	float oneMinusPhi;
+	float[] oneMinusPhi_Times_onePlusEgo;
+
 	/**
 	 * @param n
 	 */
@@ -78,6 +81,9 @@ public class CoupledNetworkedCastorAndPolluxPhiEffectMatrix extends AbstractCoup
 	 */
 	@Override
 	public void updateUsing(OpinionsMatrix x, Graph<PointND, DefaultEdge>[] graphs) {
+		if(variablesNotCached)
+			cacheVariables(x, graphs);
+
 		int n = EffectMatrix.n;
 		Graph<PointND, DefaultEdge> graphCC = graphs[0];
 //		Graph<PointND, DefaultEdge> graphPC = graphs[1];
@@ -85,8 +91,8 @@ public class CoupledNetworkedCastorAndPolluxPhiEffectMatrix extends AbstractCoup
 		Graph<PointND, DefaultEdge> graphPP = graphs[3];
 		float phi = this.phi;
 		float nominator, denominator;
-		final float oneMinusPhi = (1 - phi);
-		final float oneMinusPhi_Times_onePlusEgo = (1 - phi)*(1+ ego);
+		final float oneMinusPhi = this.oneMinusPhi;
+		final float[] oneMinusPhi_Times_onePlusEgo = this.oneMinusPhi_Times_onePlusEgo;
 
 		
 		//fill PC and CP
@@ -106,7 +112,7 @@ public class CoupledNetworkedCastorAndPolluxPhiEffectMatrix extends AbstractCoup
 			denominator = Constants.EPSILON + dist;
 			final int targetId = edgeTarget.getId();
 			final int sourceId = edgeSource.getId();
-			nominator = (sourceId == targetId) ? oneMinusPhi_Times_onePlusEgo : oneMinusPhi;
+			nominator = (sourceId == targetId) ? oneMinusPhi_Times_onePlusEgo[edgeSource.getId()] : oneMinusPhi;
 			//notice that the x dimension comes first in this implementation
 			quadrantCC[targetId][sourceId] = nominator / denominator;
 		}
@@ -119,10 +125,21 @@ public class CoupledNetworkedCastorAndPolluxPhiEffectMatrix extends AbstractCoup
 			float dist = edgeSource.getDist(edgeTarget);
 			final int targetId = edgeTarget.getId();
 			final int sourceId = edgeSource.getId();
-			nominator = (targetId == sourceId) ? oneMinusPhi_Times_onePlusEgo : oneMinusPhi;
+			nominator = (sourceId == targetId) ? oneMinusPhi_Times_onePlusEgo[edgeSource.getId()] : oneMinusPhi;
 			denominator = Constants.EPSILON + dist;
 			//notice that the x dimension comes first in this implementation
 			quadrantPP[targetId][sourceId] = nominator / denominator;
 		}
+	}
+
+	@Override
+	protected void cacheVariables(OpinionsMatrix x, Graph<PointND, DefaultEdge>[] graphs) {
+		this.oneMinusPhi = 1 - phi;
+		final PointND[] points = x.points;
+		this.oneMinusPhi_Times_onePlusEgo = new float[points.length];
+		for (int i = 0; i < oneMinusPhi_Times_onePlusEgo.length; i++) {
+			this.oneMinusPhi_Times_onePlusEgo[i] = oneMinusPhi * (1+ points[i].ego[0]);
+		}
+		variablesNotCached = false;
 	}
 }

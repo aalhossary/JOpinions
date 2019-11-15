@@ -3,6 +3,8 @@ package sg.edu.ntu.jopinions.models;
 import java.util.Arrays;
 import java.util.function.Supplier;
 
+import sg.edu.ntu.jopinions.Defaults;
+
 /**A point in N-Dimensions.
  * The number of dimensions is an arbitrary number.
  * @author Amr
@@ -16,15 +18,21 @@ public class PointND {
 	/**caching the ID to find its index faster*/
 	private int id = -1;
 
+	public static float DEFAULT_EGO = Defaults.DEFAULT_EGO;
+	float[] ego = {-1.0f};
 	private int inDegree;
 	private int outDegree;
 	
 	
 	public PointND(String name, float[] x, int id) {
+		this(name, x, id, DEFAULT_EGO);
+	}
+	public PointND(String name, float[] x, int id, float ego) {
 		checkDimensions(x);
 		this.name = name;
 		this.x = x;
 		this.id = id;
+		this.ego[0] = ego;
 	}
 	
 	/**
@@ -113,6 +121,9 @@ public class PointND {
 	}
 	public static void setNumDimensions(int d) {
 		PointND.d = d;
+	}
+	public static void setDefaultEgo(float defaultEgo) {
+		PointND.DEFAULT_EGO = defaultEgo;
 	}
 	
 	public int getId() {
@@ -282,5 +293,12 @@ public class PointND {
 
 	public void setOutDegree(int outDegree) {
 		this.outDegree = outDegree;
+	}
+	
+	public void setEgo(float ego) {
+		this.ego[0] = ego;
+	}
+	public float getEgo() {
+		return ego[0];
 	}
 }

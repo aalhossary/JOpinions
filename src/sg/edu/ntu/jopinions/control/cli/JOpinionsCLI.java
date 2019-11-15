@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 import org.jgrapht.Graph;
 import org.jgrapht.Graphs;
 import org.jgrapht.generate.BarabasiAlbertGraphGenerator;
-import org.jgrapht.generate.BollobasGraphGenerator;
+import org.jgrapht.generate.DirectedScaleFreeGraphGenerator;
 import org.jgrapht.generate.GnmRandomGraphGenerator;
 import org.jgrapht.generate.GraphGenerator;
 import org.jgrapht.generate.KleinbergSmallWorldGraphGenerator;
@@ -43,10 +43,6 @@ import sg.edu.ntu.jopinions.models.Utils;
 
 public class JOpinionsCLI {
 	
-	public static final String PATTERN_LOG_FILE_GRAPH_C = "gc-%s.log";
-	public static final String PATTERN_LOG_FILE_GRAPH_P = "gp-%s.log";
-	public static final String PATTERN_LOG_FILE_X = "x-%s.log";
-	public static final String PATTERN_LOG_FILE_D = "D-%s.log";
 	private static Random randomGenerator;
 	private static JOpinionsCLI instance=null;
 	private static boolean verbose;
@@ -80,7 +76,7 @@ public class JOpinionsCLI {
 
 		String id = Utils.getParameter(args, "-id", "", "");
 		String outFolderString = Utils.getParameter(args, "-outFolder", "./", null);
-		File ggFile = null, ppFile = null;
+		File ccFile = null, ppFile = null, dcpFile = null;
 		PrintStream xOut = null, DOut = null;
 		if (outFolderString != null) {
 			File outFolder = new File(outFolderString);
@@ -89,10 +85,11 @@ public class JOpinionsCLI {
 			}
 			boolean effectMatrix = Boolean.valueOf(Utils.getParameter(args, "-effectsMatrix", "true", "false"));
 			try {
-				ggFile = new File(outFolder, String.format(JOpinionsCLI.PATTERN_LOG_FILE_GRAPH_C, id));
-				ppFile = new File(outFolder, String.format(JOpinionsCLI.PATTERN_LOG_FILE_GRAPH_P, id));
-				File xFile = new File(outFolder, String.format(JOpinionsCLI.PATTERN_LOG_FILE_X, id));
-				File DFile = new File(outFolder, String.format(JOpinionsCLI.PATTERN_LOG_FILE_D, id));
+				ccFile = new File(outFolder, String.format(Constants.PATTERN_LOG_FILE_GRAPH_CC, id));
+				ppFile = new File(outFolder, String.format(Constants.PATTERN_LOG_FILE_GRAPH_PP, id));
+				dcpFile = new File(outFolder, String.format(Constants.PATTERN_LOG_FILE_DETAILS_CP, id));
+				File xFile = new File(outFolder, String.format(Constants.PATTERN_LOG_FILE_X, id));
+				File DFile = new File(outFolder, String.format(Constants.PATTERN_LOG_FILE_D, id));
 				xOut = new PrintStream(new BufferedOutputStream(new FileOutputStream(xFile), 8 * 1024), false);
 				if (effectMatrix) {
 					DOut = new PrintStream(new BufferedOutputStream(new FileOutputStream(DFile), 8 * 1024), false);
@@ -112,46 +109,67 @@ public class JOpinionsCLI {
 		int numDimensions = Integer.valueOf(Utils.getParameter(args, "-dimensions", "", String.valueOf(Defaults.DEFAULT_NUM_DIMENSIONS)));
 		
 		PointND.setNumDimensions(numDimensions);
+		PointND.setDefaultEgo(Float.valueOf(Utils.getParameter(args, "-ego", null, ""+Defaults.DEFAULT_EGO)));
 		Graph<PointND, DefaultEdge> graphCC/* , graphCP, graphPC */, graphPP;
 
 		//add Topology Random generators
+//		randomGenerator.setSeed(seed); // no need to set the seed because this is the first call to randomGenerator
 		GraphGenerator<PointND, DefaultEdge, PointND> generator = createTopologyGenerator(args, simulation, numCouples, randomGenerator);
 
-		Float rho = Float.valueOf(Utils.getParameter(args, Constants.PARAM_STUBBORN, "", ""+Defaults.RHO));
-		final int MAX_MOBILIZATION_ATTEMPTS = 1000;
-		boolean success;
-		int attempts = 0;
-		do {
-			graphCC = new DefaultDirectedGraph<>(new PointNDSupplier(numDimensions, Constants.CASTOR),SupplierUtil.createDefaultEdgeSupplier(),false);
-			generator.generateGraph(graphCC);
-			addSelfLoops(graphCC);
-			Utils.cacheVerticesDegrees(graphCC);
-//			randomGenerator.set
-			success = mobilize(graphCC, rho, randomGenerator);
-		}while (! success & ++attempts < MAX_MOBILIZATION_ATTEMPTS); //This is & (not &&) on purpose; to increment attempts.
-		if (verbose) {
-			System.out.println("Attempted " + attempts + " times to manipulate graph.");
-		}
-		if(! success) {
-			System.err.println("ERROR: Failed to obtain a graph with desired distribution after "+MAX_MOBILIZATION_ATTEMPTS+" attempts. Exiting.");
-			System.exit(-3);
-		}
+//		Float rho = Float.valueOf(Utils.getParameter(args, Constants.PARAM_STUBBORN, "", ""+Defaults.RHO));
 
-		attempts = 0;
-		do {
-			graphPP = new DefaultDirectedGraph<>(new PointNDSupplier(numDimensions, Constants.PULLOX),SupplierUtil.createDefaultEdgeSupplier(),false);
-			generator.generateGraph(graphPP);
-			addSelfLoops(graphPP);
-			Utils.cacheVerticesDegrees(graphPP);
-			success = mobilize(graphPP, rho, randomGenerator);
-		}while (! success & ++attempts < MAX_MOBILIZATION_ATTEMPTS); //This is & (not &&) on purpose; to increment attempts.
-		if (verbose) {
-			System.out.println("Attempted " + attempts + " times to manipulate graph.");
-		}
-		if(! success) {
-			System.err.println("ERROR: Failed to obtain a graph with desired distribution after "+ MAX_MOBILIZATION_ATTEMPTS+" attempts. Exiting.");
-			System.exit(-3);
-		}
+//		//==================== multiple trials of mobilization start ====================================
+//		final int MAX_MOBILIZATION_ATTEMPTS = 1000;
+//		boolean success;
+//		int attempts = 0;
+//		do {
+//			graphCC = new DefaultDirectedGraph<>(new PointNDSupplier(numDimensions, Constants.CASTOR),SupplierUtil.createDefaultEdgeSupplier(),false);
+//			generator.generateGraph(graphCC);
+//			addSelfLoops(graphCC);
+//			Utils.cacheVerticesDegrees(graphCC);
+//			success = mobilize(graphCC, rho, randomGenerator);
+//		}while (! success & ++attempts < MAX_MOBILIZATION_ATTEMPTS); //This is & (not &&) on purpose; to increment attempts.
+//		if (verbose) {
+//			System.out.println("Attempted " + attempts + " times to manipulate graph.");
+//		}
+//		if(! success) {
+//			System.err.println("ERROR: Failed to obtain a graph with desired distribution after "+MAX_MOBILIZATION_ATTEMPTS+" attempts. Exiting.");
+//			System.exit(-3);
+//		}
+//
+//		attempts = 0;
+//		do {
+//			graphPP = new DefaultDirectedGraph<>(new PointNDSupplier(numDimensions, Constants.PULLOX),SupplierUtil.createDefaultEdgeSupplier(),false);
+//			generator.generateGraph(graphPP);
+//			addSelfLoops(graphPP);
+//			Utils.cacheVerticesDegrees(graphPP);
+//			success = mobilize(graphPP, rho, randomGenerator);
+//		}while (! success & ++attempts < MAX_MOBILIZATION_ATTEMPTS); //This is & (not &&) on purpose; to increment attempts.
+//		if (verbose) {
+//			System.out.println("Attempted " + attempts + " times to manipulate graph.");
+//		}
+//		if(! success) {
+//			System.err.println("ERROR: Failed to obtain a graph with desired distribution after "+ MAX_MOBILIZATION_ATTEMPTS+" attempts. Exiting.");
+//			System.exit(-3);
+//		}
+//		//==================== multiple trials of mobilization end ====================================
+//		//==================== Single trial of graph manipulation start ====================================
+		graphCC = new DefaultDirectedGraph<>(new PointNDSupplier(numDimensions, Constants.CASTOR), SupplierUtil.createDefaultEdgeSupplier(), false);
+		graphPP = new DefaultDirectedGraph<>(new PointNDSupplier(numDimensions, Constants.PULLOX), SupplierUtil.createDefaultEdgeSupplier(), false);
+		generator.generateGraph(graphCC);
+		generator.generateGraph(graphPP);
+		//No need to call cacheVerticesDegrees because addSelfLoops does the caching already
+//		Utils.cacheVerticesDegrees(graphCC);
+//		Utils.cacheVerticesDegrees(graphPP);
+		addSelfLoops(graphCC);
+		addSelfLoops(graphPP);
+//		randomGenerator.setSeed(seed);
+//		if(! fixOnly(graphCC, rho, randomGenerator))
+//			throw new RuntimeException("Couldn't fix enough points in graph CC");
+//		if(! fixOnly(graphPP, rho, randomGenerator))
+//			throw new RuntimeException("Couldn't fix enough points in graph PP");
+//		//==================== Single trial of graph manipulation end ====================================
+		
 		
 		boolean flip = Boolean.parseBoolean(Utils.getParameter(args, "-flip", "true", "false"));
 		if (flip) {
@@ -176,7 +194,31 @@ public class JOpinionsCLI {
 		x.normalize();
 		
 		//=========== Manage stubborn start======================================
+		float beta = Float.valueOf(Utils.getParameter(args, "-beta", "", ""+Defaults.DEFAULT_BETA));
+		randomGenerator.setSeed(seed);
+		Set<Integer>[] stubborns = selectStubborns(graphs);
+		Set<Integer> egostics[] = null;
+		//ONLY if parameter given
+		Float egoRatio = Float.valueOf(Utils.getParameter(args, Constants.PARAM_EGO_RATIO, "", "-1"));
+		if(egoRatio >= 0) {
+			egostics = selectEgostics(graphs, stubborns, egoRatio, randomGenerator);
+			float k = 5; //TODO to be parameterized later
+			int idOffset = 0;
+			for (int i = 0; i < egostics.length; i++) {
+				final Set<Integer> ids = egostics[i];
+				if(ids == null)
+					continue;
+				for (Integer egosticId : ids) {
+					final PointND pointND = x.points[egosticId + idOffset];
+					//must have in-degree cached already
+					int inDegree = pointND.getInDegree();
+					pointND.setEgo(k * (2 * inDegree + beta * (1 - (2 * inDegree))) /* / (1-beta) */);
+				}
+				idOffset += numCouples;
+			}
+		}
 		String[] manageStubborn = Utils.getParameters(args, Constants.PARAM_MANAGE_STUBBORN, (String[])null, new String[]{Constants.NONE});
+		randomGenerator.setSeed(seed);
 		if (manageStubborn == null) {
 			throw new IllegalArgumentException("If parameter " + Constants.PARAM_MANAGE_STUBBORN + " is introduced, it must be given a value.");
 		} else {
@@ -189,8 +231,9 @@ public class JOpinionsCLI {
 			} else if (command.equals(Constants.POLARIZE_COUPLE)) {
 				float nu = Defaults.NU;
 				try { nu = Float.valueOf(manageStubborn[1]); } catch (Exception e) {}
-				polarizeCouple(graphCC, x, nu, randomGenerator);
-				polarizeCouple(graphPP, x, nu, randomGenerator);
+//				polarizeCouple(graphCC, x, nu, randomGenerator);
+//				polarizeCouple(graphPP, x, nu, randomGenerator);
+				polarizeCouple(egostics, x, nu, randomGenerator);
 			} else if (command.equals(Constants.NONE)) {
 				//do nothing
 			} else {
@@ -206,9 +249,10 @@ public class JOpinionsCLI {
 			System.out.println("============PP Graph=============");
 			GraphsIO.export(graphPP, System.out);
 		}
-		if (ggFile != null && ppFile != null) {
-			GraphsIO.export(graphCC, ggFile);
+		if (ccFile != null && ppFile != null && dcpFile != null) {
+			GraphsIO.export(graphCC, ccFile);
 			GraphsIO.export(graphPP, ppFile);
+			GraphsIO.exportDetails(graphs, dcpFile);
 		}
 		//=========== Output graphs End ===========================================
 
@@ -220,7 +264,10 @@ public class JOpinionsCLI {
 		
 	}
 	private static void addSelfLoops(Graph<PointND, DefaultEdge> graph) {
-		graph.vertexSet().stream().forEach(vertix -> graph.addEdge(vertix, vertix));
+		graph.vertexSet().stream().forEach(vertex -> {	graph.addEdge(vertex, vertex); 
+														vertex.setInDegree(graph.inDegreeOf(vertex));
+														vertex.setOutDegree(graph.outDegreeOf(vertex));
+													});
 	}
 	
 	private static void polarizeSingle(Graph<PointND, DefaultEdge> graph, float nu) {
@@ -234,6 +281,56 @@ public class JOpinionsCLI {
 				System.out.println(point);
 			}
 		}
+	}
+	
+	private static Set<Integer>[] selectStubborns(Graph<PointND, DefaultEdge>[] graphs){
+		@SuppressWarnings("unchecked")
+		Set<Integer>[] ret = (Set<Integer>[]) new Set[graphs.length]; 
+		//add intervals from both graphs together, because there may be double-fixed intervals.
+		for (int i = 0; i < ret.length; i++) {
+			Graph<PointND, DefaultEdge> graph = graphs[i];
+			Set<Integer> stubbornIdsSet = new LinkedHashSet<>();
+			if(graph == null)
+				continue;
+			graph.vertexSet().stream()
+			.filter(vertex -> vertex.getInDegree() == 1)
+			.forEach(vertex -> stubbornIdsSet.add(vertex.getId()));
+			ret[i] = stubbornIdsSet;
+		}
+		return ret;
+	}
+	private static Set<Integer>[] selectEgostics(Graph<PointND, DefaultEdge>[] graphs, Set<Integer>[] stubbornIdsSets, float fixedPercent, Random random){
+		int graphVertexSetSize = 0, targetNumFixed = 0;
+
+		Set<Integer>[] ret = (Set<Integer>[]) new Set[graphs.length]; 
+		for (int i = 0; i < graphs.length; i++) {
+			Graph<PointND, DefaultEdge> graph = graphs[i];
+			if(graph == null)
+				continue;
+			Set<Integer> stubbornIdsSet = stubbornIdsSets[i];
+			graphVertexSetSize = graph.vertexSet().size();
+			targetNumFixed = (int) (graphVertexSetSize * fixedPercent);
+			Set<Integer> candidates = new LinkedHashSet<>();
+
+			if(stubbornIdsSet.size() <= targetNumFixed) {
+				candidates.addAll(stubbornIdsSet);
+			} else {
+				Integer[] ids = new Integer[stubbornIdsSet.size()];
+				stubbornIdsSet.toArray(ids);
+				while (candidates.size() < targetNumFixed) {
+					candidates.add(ids[random.nextInt(ids.length)]);
+				}
+			}
+
+			Set<PointND> vertexSet = graph.vertexSet();
+			PointND[] AllVertices = new PointND[vertexSet.size()];
+			vertexSet.toArray(AllVertices);
+			while(candidates.size() < targetNumFixed) {
+				candidates.add(AllVertices[random.nextInt(AllVertices.length)].getId());
+			}
+			ret[i] = candidates;
+		}
+		return ret;
 	}
 
 	/**
@@ -260,6 +357,36 @@ public class JOpinionsCLI {
 				System.out.println(point1);
 				System.out.println(point2);
 				System.out.println();
+			}
+		}
+	}
+
+	/**
+	 * One potential bug in this implementation is that the pair would go to an
+	 * arbitrary pole regardless to the place where they were originally in.
+	 * @param x
+	 * @param nu
+	 * @param random
+	 */
+	private static void polarizeCouple(Set<Integer>[] egostics, OpinionsMatrix x, float nu, Random random) {
+		int n = x.getN();
+		for (int i = 0; i < egostics.length; i++) {
+			Set<Integer> groupIdsSet = egostics[i];
+			if(groupIdsSet == null)
+				continue;
+			Iterator<Integer> subjectPointsIdsIterator = groupIdsSet.iterator();
+			while (subjectPointsIdsIterator.hasNext()) {
+				int id = subjectPointsIdsIterator.next();
+				boolean targetPool = random.nextBoolean();
+				final PointND point1 = x.points[id];
+				final PointND point2 = x.points[id+n];
+				moveToPole(point1, targetPool, nu);
+				moveToPole(point2, targetPool, nu);
+				if (verbose) {
+					System.out.println(point1);
+					System.out.println(point2);
+					System.out.println();
+				}
 			}
 		}
 	}
@@ -302,6 +429,7 @@ public class JOpinionsCLI {
 		point.add(ref);
 		point.normalize();
 	}	
+	
 	private static boolean mobilize(Graph<PointND, DefaultEdge> graph, float rho, Random randomGenerator) {
 		final Comparator<DefaultEdge> inDegreeEdgeTargetComparator = new InDegreeEdgeTargetComparator(graph);
 		final Comparator<PointND> outDegreeVertixComparator = new OutDegreeVertixComparator();
@@ -416,10 +544,69 @@ public class JOpinionsCLI {
 		return false;
 	}
 
+	private static boolean fixOnly(Graph<PointND, DefaultEdge> graph, float rho, Random randomGenerator) {
+		int targetFixed = (int) (rho * graph.vertexSet().size());
+		final int fixedPointsCount = (int) graph.vertexSet().stream()
+				.filter(vertex -> graph.inDegreeOf(vertex) == 1).count(); //only from itself
+		
+		if(verbose) {
+			System.out.println("Fixedpoints = "+fixedPointsCount+"\tTarget = "+ targetFixed);
+		}
+		int newFixed = 0, targetNewFixed = 0;
+		if (targetFixed < fixedPointsCount) {// we need to decrease fixed points (mobilize)
+			//We could not
+			return false;
+		} else {// we need to add more fixed points (remove incoming edges)
+			targetNewFixed = targetFixed - fixedPointsCount;
+			Set<PointND> stubbornPointsSet = graph.vertexSet().stream()
+					.filter(point -> point.getInDegree() == 1).collect(Collectors.toSet());
+			List<PointND> subjectPointsList = graph.vertexSet().stream()
+					.filter(vertex -> !stubbornPointsSet.contains(vertex)).collect(Collectors.toList());
+			if (subjectPointsList.size() < targetNewFixed) {
+				System.err.println("Too much!");
+				return false;
+			}
+			node: while (subjectPointsList.size() > 0 && newFixed < targetNewFixed) {
+				PointND pointND = subjectPointsList.get(randomGenerator.nextInt(subjectPointsList.size()));
+				Iterator<DefaultEdge> candidateEdgesIterator = new LinkedHashSet<DefaultEdge>(graph.incomingEdgesOf(pointND)).iterator();
+				edge: while (candidateEdgesIterator.hasNext()) {
+					DefaultEdge edge = candidateEdgesIterator.next();
+					PointND edgeSource = graph.getEdgeSource(edge);
+					PointND edgeTarget = pointND;
+					// ignore loop edges
+					if (edgeSource == edgeTarget) {
+						continue edge;
+					}
+					graph.removeEdge(edge);
+
+					edgeSource.setOutDegree(graph.outDegreeOf(edgeSource));
+					edgeTarget.setInDegree(graph.inDegreeOf(edgeTarget));
+					if (pointND.getInDegree() == 1) {
+						subjectPointsList.remove(pointND);
+						stubbornPointsSet.add(pointND);
+						newFixed++;
+						if (verbose) {
+							System.out.println("Fixed " + pointND);
+						}
+						continue node;
+					}
+				}
+			}
+			if (verbose) {
+				System.out.println("total new fixed points = "+newFixed+" of "+targetNewFixed);
+			}
+			return(newFixed == targetNewFixed);
+		}
+	}
+	
 	private static GraphGenerator<PointND, DefaultEdge, PointND> createTopologyGenerator(String[] args,
 			Simulation simulation, int numCouples, Random random) {
 		GraphGenerator<PointND, DefaultEdge, PointND> generator;
-		String topology = Utils.getParameter(args, "-topology", null, Defaults.DEFAULT_TOPOLOGY);
+//		String topology = Utils.getParameter(args, "-topology", null, Defaults.DEFAULT_TOPOLOGY);
+		String[] topologyAndParams = Utils.getParameters(args, "-topology", null, new String[] {Defaults.DEFAULT_TOPOLOGY});
+		String topology = topologyAndParams[0];
+		String[] topologyParams = new String[topologyAndParams.length - 1];
+		System.arraycopy(topologyAndParams, 1, topologyParams, 0, topologyParams.length);
 		switch (topology) {
 		case Constants.TOPOLOGY_BARABASI_ALBERT_GRAPH:
 			int m0	= Integer.valueOf(Utils.getParameter(args, "-m0", "", "20"));
@@ -453,12 +640,12 @@ public class JOpinionsCLI {
 			generator = new WattsStrogatzGraphGenerator<>(numCouples, connectToKNN, propabilityRewiring, false, random);
 			break;
 
-		case Constants.BOLLOBAS_DIRECTED_SCALEFREE_GRAPH:
-			float alpha = Float.valueOf(Utils.getParameter(args, "-alpha", "", "0.3333"));
-			float beta = Float.valueOf(Utils.getParameter(args, "-beta", "", "0.3333"));
-			float dIn = Float.valueOf(Utils.getParameter(args, "-dIn", "", "1"));
-			float dOut = Float.valueOf(Utils.getParameter(args, "-dOut", "", "1"));
-			generator = new BollobasGraphGenerator<>(alpha, beta, dIn, dOut, -1, numCouples, random);
+		case Constants.TOPOLOGY_BOLLOBAS_DIRECTED_SCALEFREE_GRAPH:
+			float alpha = topologyParams.length >= 1? Float.valueOf(topologyParams[0]) : 0.3333f;
+			float gamma = topologyParams.length >= 2? Float.valueOf(topologyParams[1]) : 0.3333f;
+			float deltaIn = topologyParams.length >= 3? Float.valueOf(topologyParams[2]) : 1;
+			float deltaOut = topologyParams.length >= 4? Float.valueOf(topologyParams[3]) : 1;
+			generator = new DirectedScaleFreeGraphGenerator<>(alpha, gamma, deltaIn, deltaOut, -1, numCouples, random);
 			break;
 
 		default:
@@ -510,7 +697,6 @@ public class JOpinionsCLI {
 		default:
 			throw new IllegalArgumentException("Unknown model parameter: "+dynamicsModelString);
 		}
-		model.setEgo(Float.valueOf(Utils.getParameter(args, "-ego", null, ""+Defaults.DEFAULT_EGO)));
 		simulation.setModelNameString(dynamicsModelString);
 		return model;
 	}

@@ -28,6 +28,7 @@ public abstract class EffectMatrix {
 
 	/**Number of P-C couples in the system. */
 	protected static int n;
+	protected boolean variablesNotCached = true;
 	
 	//1st dimension is column number. 2nd dimension is the column itself (it runs along the row number).
 	protected float[][] quadrantCC = null;
@@ -42,8 +43,8 @@ public abstract class EffectMatrix {
 
 	private static String ZEROS;
 
-	protected float ego = Defaults.DEFAULT_EGO;
-
+//	protected float ego = Defaults.DEFAULT_EGO;
+//	protected float DEFAULT_EGO_STAR = ego;
 	/**
 	 * @param n number of entities, usually couples. May be singles if all Pulluxes are not connected to all Castors.
 	 */
@@ -132,8 +133,9 @@ public abstract class EffectMatrix {
 			out.println();
 		}
 	}
+	protected abstract void cacheVariables(OpinionsMatrix x, Graph<PointND,DefaultEdge>[] graphs);
 	
-	public void setEgo(float ego) {
-		this.ego = ego;
-	}
+//	public void setEgo(float ego) {
+//		this.ego = ego;
+//	}
 }

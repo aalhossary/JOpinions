@@ -7,13 +7,14 @@ import org.jgrapht.Graph;
 import org.jgrapht.graph.DefaultEdge;
 
 import sg.edu.ntu.jopinions.Constants;
-import sg.edu.ntu.jopinions.Defaults;
 
 /**
  * @author Amr
  *
  */
 public class IndependentCastorAndPolluxEffectMatrix extends AbstractIndependentCastorAndPolluxEffectMatrix {
+	
+	float[] nominator;
 
 	/**
 	 * @param n
@@ -27,9 +28,12 @@ public class IndependentCastorAndPolluxEffectMatrix extends AbstractIndependentC
 	 */
 	@Override
 	public void updateUsing(OpinionsMatrix x, Graph<PointND, DefaultEdge>[] graphs) {
+		if(variablesNotCached)
+			cacheVariables(x, graphs);
+		
 		int n = EffectMatrix.n;
 		//Nominator is always = 1
-		final float nominator = 1.0f + ego;
+		final float[] nominator = this.nominator;
 		float denominator;
 		//calculate cc
 		for (int i = 0; i < n; i++) {
@@ -37,7 +41,7 @@ public class IndependentCastorAndPolluxEffectMatrix extends AbstractIndependentC
 				PointND ci= x.points[i];
 				PointND cj= x.points[j];
 				denominator = Constants.EPSILON + ci.getDist(cj);
-				quadrantCC[i][j] = quadrantCC[j][i] = nominator / denominator;
+				quadrantCC[i][j] = quadrantCC[j][i] = nominator[j] / denominator;
 			}
 		}
 		//calculate pp
@@ -47,9 +51,19 @@ public class IndependentCastorAndPolluxEffectMatrix extends AbstractIndependentC
 				PointND pj= x.points[j];
 				denominator = Constants.EPSILON + pi.getDist(pj);
 				int ii=i-n, jj=j-n;;
-				quadrantPP[ii][jj] = quadrantPP[jj][ii] = nominator / denominator;
+				quadrantPP[ii][jj] = quadrantPP[jj][ii] = nominator[jj] / denominator;
 			}
 		}
+	}
+
+	@Override
+	protected void cacheVariables(OpinionsMatrix x, Graph<PointND, DefaultEdge>[] graphs) {
+		PointND[] points = x.points;
+		nominator = new float[points.length];
+		for (int i = 0; i < points.length; i++) {
+			nominator[i] = 1.0f + points[i].ego[0];
+		}
+		variablesNotCached = false;
 	}
 	
 //	public static void main(String[] args) {

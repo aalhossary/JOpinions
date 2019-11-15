@@ -17,6 +17,7 @@ import sg.edu.ntu.jopinions.Defaults;
  */
 public class IndependentNetworkedCastorAndPolluxEffectMatrix extends AbstractIndependentCastorAndPolluxEffectMatrix{
 
+	private float[] onePlusEgo_Over_Epsilon;
 	/**
 	 * @param n
 	 */
@@ -34,7 +35,7 @@ public class IndependentNetworkedCastorAndPolluxEffectMatrix extends AbstractInd
 		Graph<PointND, DefaultEdge> graphCC = graphs[0];
 		Graph<PointND, DefaultEdge> graphPP = graphs[3];
 		float nominator = 1, denominator;
-		final float onePlusEgo_Over_Epsilon = (1 + ego) / Defaults.EPSILON/* + 0 */;
+		final float[] onePlusEgo_Over_Epsilon = this.onePlusEgo_Over_Epsilon;
 		Set<DefaultEdge> edgeSet;
 		//calculate cc
 		edgeSet = graphCC.edgeSet();
@@ -42,7 +43,7 @@ public class IndependentNetworkedCastorAndPolluxEffectMatrix extends AbstractInd
 			PointND edgeSource = graphCC.getEdgeSource(edge);
 			PointND edgeTarget = graphCC.getEdgeTarget(edge);
 			if (edgeSource == edgeTarget) {
-				quadrantCC[edgeTarget.getId()][edgeSource.getId()] = onePlusEgo_Over_Epsilon;
+				quadrantCC[edgeTarget.getId()][edgeSource.getId()] = onePlusEgo_Over_Epsilon[edgeTarget.getId()];
 			} else {
 				denominator = Constants.EPSILON + edgeSource.getDist(edgeTarget);
 				quadrantCC[edgeTarget.getId()][edgeSource.getId()] = nominator/denominator;
@@ -54,11 +55,22 @@ public class IndependentNetworkedCastorAndPolluxEffectMatrix extends AbstractInd
 			PointND edgeSource = graphPP.getEdgeSource(edge);
 			PointND edgeTarget = graphPP.getEdgeTarget(edge);
 			if (edgeSource == edgeTarget) {
-				quadrantPP[edgeTarget.getId()][edgeSource.getId()] = onePlusEgo_Over_Epsilon;
+				quadrantPP[edgeTarget.getId()][edgeSource.getId()] = onePlusEgo_Over_Epsilon[edgeTarget.getId() + n];
 			} else {
 				denominator = Constants.EPSILON + edgeSource.getDist(edgeTarget);
 				quadrantPP[edgeTarget.getId()][edgeSource.getId()] = nominator / denominator;
 			}
 		}
+	}
+
+
+	@Override
+	protected void cacheVariables(OpinionsMatrix x, Graph<PointND, DefaultEdge>[] graphs) {
+		PointND[] points = x.points;
+		onePlusEgo_Over_Epsilon = new float[points.length];
+		for (int i = 0; i < onePlusEgo_Over_Epsilon.length; i++) {
+			onePlusEgo_Over_Epsilon[i] = (1 + points[i].ego[0]) / Defaults.EPSILON/* + 0 */;
+		}
+		variablesNotCached = false;
 	}
 }

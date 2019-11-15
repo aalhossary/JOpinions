@@ -21,6 +21,7 @@ public class OpinionsMatrix {
 	
 	public PointND[] points;
 	float[][] data;
+	float[][] ego;
 	
 	/**Generates opinions matrix assuming that the opinions are unidimensional
 	 * @param n
@@ -152,8 +153,10 @@ public class OpinionsMatrix {
 		d=PointND.d;
 		this.points = points;
 		this.data= new float[points.length][];
+		this.ego= new float[points.length][];
 		for (int i = 0; i < data.length; i++) {
 			data[i] = points[i].x;
+			ego[i] = points[i].ego;
 		}
 	}
 	public void randomize(Random random) {

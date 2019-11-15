@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Iterator;
 import java.util.Map;
 
 import org.jgrapht.Graph;
@@ -24,7 +25,7 @@ import sg.edu.ntu.jopinions.models.PointND;
 import sg.edu.ntu.jopinions.models.Utils;
 
 public class GraphsIO {
-	static final IntegerComponentNameProvider<PointND> vertexIDProvider = new IntegerComponentNameProvider<PointND>();
+	static final IntegerComponentNameProvider<PointND> vertexIDProvider = new IntegerComponentNameProvider<PointND>(0);
 	static final CSVExporter<PointND, DefaultEdge> exporter = new CSVExporter<>(vertexIDProvider, CSVFormat.ADJACENCY_LIST, ',');
 //	exporter.setParameter(CSVFormat.Parameter.EDGE_WEIGHTS, true);
 	
@@ -51,6 +52,27 @@ public class GraphsIO {
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (ExportException e) {
+			e.printStackTrace();
+		}
+	}
+	public static void exportDetails(Graph<PointND, DefaultEdge>[] graphs, File file) {
+		try {
+			PrintStream out = new PrintStream(file);
+			Graph<PointND, DefaultEdge> graph;
+			out.println("#Graph CC");
+			graph = graphs[0];
+			for (Iterator<PointND> iterator = graph.vertexSet().iterator(); iterator.hasNext();) {
+				PointND point = iterator.next();
+				out.println(String.format("%s%d: %f, %d, %d", point.getName(), point.getId(), point.getEgo(), point.getInDegree(), point.getOutDegree()));
+			}
+			out.println("#Graph PP");
+			graph = graphs[3];
+			for (Iterator<PointND> iterator = graph.vertexSet().iterator(); iterator.hasNext();) {
+				PointND point = iterator.next();
+				out.println(String.format("%s%d: %f, %d, %d", point.getName(), point.getId(), point.getEgo(), point.getInDegree(), point.getOutDegree()));
+			}
+			out.close();
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}

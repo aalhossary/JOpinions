@@ -31,10 +31,12 @@ public interface Defaults extends Constants {
 	Color COLOR_PULLOX = Color.BLUE;
 	Color COLOR_CONNECTION = Color.BLACK;
 
-	/** percentage stubborn nodes that remain fixed after mobilization (out of all population)*/
-	float RHO = 0.05f;
+//	/** percentage stubborn nodes that remain fixed after mobilization (out of all population)*/
+//	float RHO = 0.05f;
+//	/** percentage nodes that remain with exaggerated ego value (out of all population)*/
+//	float EGO_PERCENT = -1f;
 	
 	/** value[0.0, 1.0] to determine the polar area size. If \nu = 1, they would touch each other. */
-	float NU = 2.0f;
+	float NU = 0.05f;
 
 }
