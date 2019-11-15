@@ -218,12 +218,12 @@ public class DistortionCalculator {
 			}
 		}
 		
-		List<Pair<List<Integer>>> listOfFiftyListsOfPairsOfCandidatesIdListsAndVoterIdLists = new ArrayList<>();
+		List<Pair<List<Integer>>> listOfFiftyPairsOfCandidatesIdListsAndVoterIdLists = new ArrayList<>();
 		for (List<List<Integer>> fiftyListsOfCandidatesIds : listOfFiftyListsOfCandidatesIdLists) {
 			for (List<Integer> iterationListOfCandidateIds : fiftyListsOfCandidatesIds) {
 				List<Integer> iterationListOfVoterIds = new ArrayList<>(all______IdsArrayList);
 				iterationListOfVoterIds.removeAll(iterationListOfCandidateIds);
-				listOfFiftyListsOfPairsOfCandidatesIdListsAndVoterIdLists.add(new Pair<List<Integer>>(iterationListOfCandidateIds, iterationListOfVoterIds));
+				listOfFiftyPairsOfCandidatesIdListsAndVoterIdLists.add(new Pair<List<Integer>>(iterationListOfCandidateIds, iterationListOfVoterIds));
 			}
 		}
 
@@ -351,12 +351,11 @@ public class DistortionCalculator {
 		//		 Now we have all distances. Let's calculate and output distortions.
 		//		=============================================================================
 
-		printHeader(utilityFunctions, listOfFiftyListsOfPairsOfCandidatesIdListsAndVoterIdLists, true, out);
-		printHeader(utilityFunctions, listOfFiftyListsOfPairsOfCandidatesIdListsAndVoterIdLists, false, summary);
+		printHeader(utilityFunctions, listOfFiftyPairsOfCandidatesIdListsAndVoterIdLists, true, out);
+		printHeader(utilityFunctions, listOfFiftyPairsOfCandidatesIdListsAndVoterIdLists, false, summary);
 
 		int indexInGroup;
-		float[] distortions = new float[NUM_SEEDS];
-		float mean, variance = 0.0f;
+		float mean = 0.0f, variance = 0.0f;
 		
 		// Do this every step
 		for (int stepIndex = 0; stepIndex < states.length; stepIndex++) {
@@ -366,11 +365,10 @@ public class DistortionCalculator {
 //			System.out.println("Num of splitting schemata = "+ worldAfterSplitting.size());
 			out.print(stepIndex); out.print('\t');
 			summary.print(stepIndex); summary.print('\t');
-			
 			for (UtilityFunction utilityFunction : utilityFunctions) {
-				for (int i = 0; i < listOfFiftyListsOfPairsOfCandidatesIdListsAndVoterIdLists.size(); i++) {
+				for (int i = 0; i < listOfFiftyPairsOfCandidatesIdListsAndVoterIdLists.size(); i++) {
 					indexInGroup = i % NUM_SEEDS;
-					Pair<List<Integer>> pair = listOfFiftyListsOfPairsOfCandidatesIdListsAndVoterIdLists.get(i);
+					Pair<List<Integer>> pair = listOfFiftyPairsOfCandidatesIdListsAndVoterIdLists.get(i);
 					List<Integer> iterationCandidateIdsList = pair.key;
 					List<Integer> iterationVoterIdsList   = pair.value;
 
@@ -379,7 +377,6 @@ public class DistortionCalculator {
 
 					// Sum all candidate-voters distances per candidate
 					float nominator = 0, minSumDistance = Float.MAX_VALUE;
-					mean = variance = 0.0f;
 					for (Integer candidateId : iterationCandidateIdsList) {
 						float sumDistance = 0.0f;
 						for (Integer voterId : iterationVoterIdsList) {
@@ -397,10 +394,10 @@ public class DistortionCalculator {
 					
 					float distortion = nominator / minSumDistance;
 					mean += distortion;
-					distortions[indexInGroup] = distortion;
+					variance+= distortion*distortion;
 
 					out.format(floatAndDelimeter, distortion);
-					if(indexInGroup == NUM_SEEDS - 1) {
+					if(indexInGroup == NUM_SEEDS - 1) { /// this should identify when we finish the 50 exps of the group --- similar check above for the beginning of a group to reset mean and var
 //						final int ii = (i+1) / 20;
 //						if(ii% 9 == 0) {
 //							out.print("#\t");
@@ -409,14 +406,13 @@ public class DistortionCalculator {
 //						}else {
 //							out.print(",\t");
 //						}
-						mean /= NUM_SEEDS;
-						for (int j = 0; j < distortions.length; j++) {
-							variance += Math.pow((distortions[j] - mean), 2);
-						}
-						variance /= NUM_SEEDS;
+						mean /= NUM_SEEDS; // divided by 50
+						variance /= NUM_SEEDS; // divided by 50
+						variance -= mean*mean;
+						variance *= 1.0f*NUM_SEEDS/(NUM_SEEDS-1); // this is to produce unbiased variance estimate 
 						summary.format(floatAndDelimeter, mean);
 						summary.format(floatAndDelimeter, variance);
-						mean = variance = 0.0f;
+						mean = variance = 0.0f; // this is the correct reset point --- once we finish the 50 exps of the group we are done
 					}
 
 				}
