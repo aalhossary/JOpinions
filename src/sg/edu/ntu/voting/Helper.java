@@ -42,6 +42,7 @@ public class Helper<T>{
 	}
 
 	public List<List<T>> giveMeXDifferentCombinations(List<T> n_FullList, int r, int howManyNeeded, Random random){
+		List<List<T>> ret = new ArrayList<>();
 		final int n = n_FullList.size();
 		final long nCr = nCr(n, r);
 		List<Long> combinationIndices = new ArrayList<>();
@@ -51,9 +52,15 @@ public class Helper<T>{
 		}
 		Collections.sort(combinationIndices);
 //		System.out.format("CombinationIndices for N=%2d, r=%2d are %s\n", n, r, combinationIndices);
-
+		
+		if(n == r) {
+			System.err.println("Warning: N = K = ("+n+"). We will return ("+ howManyNeeded+ ")dublicates of the full list");
+			for (int i = 0; i < howManyNeeded; i++) {
+				ret.add(n_FullList);
+			}
+			return ret;
+		}
 		BinCoeffL binCoeffL = new BinCoeffL(n, r);
-		List<List<T>> ret = new ArrayList<>();
 		int[] itemKIndexes = new int[r];
 		for (Long index : combinationIndices) {
 			List<T> combination = new ArrayList<>();
