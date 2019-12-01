@@ -645,7 +645,8 @@ public class JOpinionsCLI {
 			float gamma = topologyParams.length >= 2? Float.valueOf(topologyParams[1]) : 0.3333f;
 			float deltaIn = topologyParams.length >= 3? Float.valueOf(topologyParams[2]) : 1;
 			float deltaOut = topologyParams.length >= 4? Float.valueOf(topologyParams[3]) : 1;
-			generator = new DirectedScaleFreeGraphGenerator<>(alpha, gamma, deltaIn, deltaOut, -1, numCouples, random);
+//			generator = new DirectedScaleFreeGraphGenerator<>(alpha, gamma, deltaIn, deltaOut, -1, numCouples, random);
+			generator = new DirectedScaleFreeGraphGenerator<>(alpha, gamma, deltaIn, deltaOut, -1, numCouples, random, false, false);
 			break;
 
 		default:
