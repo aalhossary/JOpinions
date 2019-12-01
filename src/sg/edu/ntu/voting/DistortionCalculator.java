@@ -26,7 +26,6 @@ import sg.edu.ntu.jopinions.Constants;
 import sg.edu.ntu.jopinions.Defaults;
 import sg.edu.ntu.jopinions.control.cli.GraphsIO;
 import sg.edu.ntu.jopinions.control.cli.Parser;
-import sg.edu.ntu.jopinions.models.FullyCoupledNetworkedCastorAndPolluxEffectMatrix;
 import sg.edu.ntu.jopinions.models.PointND;
 import sg.edu.ntu.jopinions.models.Utils;
 
